@@ -73,6 +73,8 @@ public class SecurityConfig {
                     .logoutSuccessUrl("/login?logout")
                     .permitAll()
                 .and()
+                .exceptionHandling().accessDeniedPage("/denied")
+                .and()
                 .csrf().ignoringAntMatchers("/h2-console/**")
                 .and()
                 .headers().frameOptions().sameOrigin();
