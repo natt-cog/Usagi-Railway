@@ -31,7 +31,7 @@ fi
 git fetch --tags --quiet origin 2>/dev/null || true
 git rev-parse -q --verify "refs/tags/$TAG" >/dev/null || { echo "タグ $TAG がありません" >&2; exit 1; }
 git checkout -q -B demo/live "$TAG"
-rm -rf batch/c/work batch/cobol/work target
+rm -rf batch/c/work batch/java/work target
 echo "demo/live を $TAG ($(git rev-parse --short HEAD)) にリセットしました"
 
 if [ "$START" = 1 ]; then

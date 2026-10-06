@@ -17,7 +17,7 @@ import jp.usagi.railway.domain.InspectionKind;
 import jp.usagi.railway.repository.FormationRepository;
 
 /**
- * 検査期限算出. COBOL バッチ URINS01 (batch/cobol/URINS01.cbl) と同一ロジック.
+ * 検査期限算出. 旧 COBOL バッチ URINS01 (Git 履歴) と同一ロジック. 仕様は docs/batch/URINS01.md.
  *
  *   交番検査   : 前回 + 90 日
  *   重要部検査 : 前回 + 4 年 または 走行 60 万 km
@@ -141,7 +141,7 @@ public class InspectionService {
 
     public static List<String> formatDueFile(LocalDate base, List<InspectionDue> list) {
         List<String> out = new ArrayList<String>();
-        out.add("H" + base.toString(YMD));
+        out.add(formatHeader(base));
         int warn = 0;
         int over = 0;
         for (InspectionDue d : list) {
@@ -152,8 +152,16 @@ public class InspectionService {
                 over++;
             }
         }
-        out.add(String.format("T%06d%06d%06d", list.size(), warn, over));
+        out.add(formatTrailer(list.size(), warn, over));
         return out;
+    }
+
+    public static String formatHeader(LocalDate base) {
+        return "H" + base.toString(YMD);
+    }
+
+    public static String formatTrailer(int count, int warn, int over) {
+        return String.format("T%06d%06d%06d", count, warn, over);
     }
 
     public static String formatRecord(InspectionDue d) {

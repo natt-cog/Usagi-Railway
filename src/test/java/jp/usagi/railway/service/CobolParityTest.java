@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.Test;
 
 /**
- * COBOL バッチ URINS01 (batch/cobol/URINS01.cbl) と Java 検査期限算出の同値性テスト.
+ * 旧 COBOL バッチ URINS01 (Git 履歴) と Java 検査期限算出の同値性テスト.
  *
  * golden/FORMATIONS.DAT を URINS01 に入力した結果 (golden/INSPDUE_COBOL.DAT) と,
  * {@link InspectionService#processFormationsFile} の結果が 1 バイト単位で一致することを検証する.

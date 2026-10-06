@@ -21,7 +21,7 @@
 </table>
 </div>
 <div class="panel">
-  <h2>検査期限ファイル <small>COBOL バッチ URINS01 と同一形式 (INSPDUE.DAT)</small></h2>
+  <h2>検査期限ファイル <small>検査期限バッチ URINS01 と同一形式 (INSPDUE.DAT)</small></h2>
   <pre class="file"><c:forEach var="l" items="${fileLines}"><c:out value="${l}" />
 </c:forEach></pre>
 </div>
