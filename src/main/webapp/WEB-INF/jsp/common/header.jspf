@@ -11,6 +11,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title><c:out value="${pageTitle}" default="URMS" /> | うさぎ鉄道 電力・車両保守システム</title>
 <link rel="stylesheet" href="${ctx}/static/css/urms.css">
+<script src="${ctx}/static/js/urms-theme.js"></script>
 <script src="${ctx}/static/js/jquery-1.12.4.min.js"></script>
 <script src="${ctx}/static/js/urms.js"></script>
 </head>
@@ -26,6 +27,7 @@
         <button type="submit" class="link">ログアウト</button>
       </form>
     </sec:authorize>
+    <button type="button" id="theme-toggle" class="theme" title="表示テーマを切り替え" aria-pressed="false">&#9790; ダーク表示</button>
   </div>
 </div>
 <div id="nav">
