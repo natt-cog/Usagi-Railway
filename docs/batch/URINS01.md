@@ -292,7 +292,7 @@ COBOL 版は入力の妥当性チェックをほとんど行わない。以下�
 
 「要判断」(G5, G9, G10, G11, G13) は COBOL の実挙動を記録したもの。Java 化の方針決定 (起動方式の設計) で扱いを決め、境界値ゴールデンデータ作成時にケースとして固定する。
 
-決定 (境界値ゴールデンデータ作成時, 付録 B): G5・G9・G11 は COBOL の出力をゴールデンとして固定する。G10・G13 は COBOL の不定値を正解にせず、Java は RC=12 でエラー終了とする (入力と期待 RC だけを固定)。
+決定 (境界値ゴールデンデータ作成時, 付録 B): G5・G9・G11 は COBOL の出力をゴールデンとして固定する。G10・G13 は COBOL の不定値を正解にせず、Java は `URINS01 E:` で始まるメッセージを出して RC=12 でエラー終了とする (入力と期待 RC・メッセージ接頭辞だけを固定)。G10 の「H 無し」は D の有無にかかわらず適用する (0 バイトの入力も含む)。
 
 ## 8. 実行環境メモ
 
@@ -345,7 +345,7 @@ Java 版のパリティテスト用に、COBOL URINS01 を `batch/cobol/run.sh` 
 | `COBOL_RC` / `COBOL_STDOUT.txt` | mode=error のケースのみ。COBOL の実挙動の参考記録で、正解ではない |
 
 - **mode=golden**: Java は `INSPDUE.DAT` (有無を含む)・`RC`・`STDOUT.txt` とバイト一致させる。
-- **mode=error**: COBOL は不定値を出力するため正解にしない。Java は RC=12 で異常終了すること (§7.2 G10・G13 の決定)。メッセージ文言と出力ファイルの扱いは起動方式の設計で決める。
+- **mode=error**: COBOL の出力は正解にしない (不定値、または H 無し)。Java は `URINS01 E:` で始まるメッセージを出して RC=12 で異常終了すること (§7.2 G10・G13 の決定)。`E:` 以降の文言と出力ファイルの扱いは起動方式の設計で決める。
 
 基準日は 06 の 2 件目以外すべて `20261005`。
 
@@ -365,10 +365,8 @@ Java 版のパリティテスト用に、COBOL URINS01 を `batch/cobol/run.sh` 
 | 11-formation-spaces | golden | 編成番号 ` U31  ` / `U3101 ` / 全空白 | 0 | 6 桁をそのまま転記 | G12, A-15 |
 | 12-no-input-file | golden | 入力ファイル無し | 12 | `E: FORMATIONS.DAT OPEN ERROR 35`、`INSPDUE.DAT` 作成なし | G6, A-16 |
 | 13-header-only | golden | H と `T000000` のみ | 0 | `H20261005` と `T000000000000000000` | — |
-| 14-empty-file | golden | 0 バイトの入力 | 0 | `T000000000000000000` のみ、`I:` は `基準日=00000000` | — (注) |
-| 15-no-header | error | H 無しで D 1 件 | (0) | Java は RC=12 | G10, A-11 |
-| 16-invalid-date | error | 存在しない日付 20230230 | (4) | Java は RC=12 | G13, A-12 |
-| 17-km-non-numeric | error | 走行 km に `A` | (0) | Java は RC=12 | G13, A-13 |
-| 18-short-record | error | 38 桁未満の D | (4) | Java は RC=12 | G13, A-14 |
-
-(注) 14 も H レコードが無いが、D が 0 件で不定値が出ないため COBOL の出力をゴールデンとした。G10 の RC=12 は「H より前に D がある」場合に適用する想定。起動方式の設計で H 無しを一律エラーとする場合は本ケースを mode=error に変更すること。
+| 14-empty-file | error | 0 バイトの入力 (H 無し・D 0 件) | (0) | Java は `URINS01 E:` / RC=12 (COBOL は `T000000000000000000` のみを出力し `基準日=00000000`) | G10 |
+| 15-no-header | error | H 無しで D 1 件 | (0) | Java は `URINS01 E:` / RC=12 | G10, A-11 |
+| 16-invalid-date | error | 存在しない日付 20230230 | (4) | Java は `URINS01 E:` / RC=12 | G13, A-12 |
+| 17-km-non-numeric | error | 走行 km に `A` | (0) | Java は `URINS01 E:` / RC=12 | G13, A-13 |
+| 18-short-record | error | 38 桁未満の D | (4) | Java は `URINS01 E:` / RC=12 | G13, A-14 |

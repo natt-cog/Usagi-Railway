@@ -1,7 +1,7 @@
 # URINS01 境界値ゴールデンケース一覧 (batch/cobol/gen-boundary.sh が読む)
 # case	mode	java_rc	gap	description
 # mode=golden : COBOL の INSPDUE.DAT / RC / STDOUT.txt を正解とし、Java はバイト一致させる
-# mode=error  : COBOL の結果は不定値のため正解にしない (COBOL_RC / COBOL_STDOUT.txt は参考記録)。Java は java_rc で異常終了する
+# mode=error  : COBOL の結果は不定値のため正解にしない (COBOL_RC / COBOL_STDOUT.txt は参考記録)。Java は "URINS01 E:" で始まるメッセージを出して java_rc で異常終了する
 00-golden-current	golden	=	-	現行 batch/cobol/data/FORMATIONS.DAT (6 編成)
 01-leap-add-years	golden	=	-	2/29 起点の重要部 +4 年・全般 +8 年 (うるう年/平年, 100・400 年規則), 交番 +90 日のうるう日跨ぎ
 02-days-boundary	golden	=	-	残日数 -1 / 0 / 1 / 14 / 15
@@ -16,7 +16,7 @@
 11-formation-spaces	golden	=	G12	編成番号の前後空白・全空白
 12-no-input-file	golden	=	G6	入力ファイル無し (RC=12, INSPDUE.DAT 作成なし)
 13-header-only	golden	=	-	H と T000000 のみ (D 0 件)
-14-empty-file	golden	=	-	空ファイル (0 バイト)
+14-empty-file	error	12	G10	空ファイル (0 バイト, H 無し)
 15-no-header	error	12	G10	H レコード無し
 16-invalid-date	error	12	G13	存在しない日付 20230230
 17-km-non-numeric	error	12	G13	走行 km に数字以外
