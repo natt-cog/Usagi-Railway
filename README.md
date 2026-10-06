@@ -6,6 +6,20 @@
 
 > 架空のシステムです。三菱電機を含む実在企業のシステムやデータを再現したものではありません。
 
+![停電作業: 検修が申請し、指令が承認・き電停止・復電するまで](docs/images/demo-outage.gif)
+
+| ダッシュボード | 変電所 (遮断器・計測値) | 警報一覧 |
+|---|---|---|
+| ![ダッシュボード](docs/images/dashboard.png) | ![変電所](docs/images/substation-detail.png) | ![警報一覧](docs/images/alarms.png) |
+
+| 電力日報 (C バッチと同一形式) | 検査期限 (COBOL バッチと同一形式) | 編成 (休車・検査超過) |
+|---|---|---|
+| ![電力日報](docs/images/daily-report.png) | ![検査期限](docs/images/inspections.png) | ![編成](docs/images/formation-detail.png) |
+
+| 搭載機器 (製造番号のライフサイクル) | 故障・メーカー修理 |
+|---|---|
+| ![搭載機器](docs/images/equipment-lifecycle.png) | ![故障](docs/images/failure-detail.png) |
+
 ## 業務機能
 
 | 区分 | 画面 / API | 内容 |
@@ -90,6 +104,7 @@ batch/c/urpwd01.c                C 電力日報バッチ (2004 年製), data/, e
 batch/cobol/URINS01.cbl          COBOL 検査期限算出バッチ (1997 年製), data/, expected/, run.sh
 demo/reset.sh                    デモ環境リセット
 docs/DEMO.md                     デモ台本
+docs/images/                     README 用スクリーンショット / GIF
 ```
 
 ## モダナイゼーションのトラック (デモシナリオ)
