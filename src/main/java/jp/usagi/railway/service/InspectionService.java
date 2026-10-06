@@ -17,7 +17,7 @@ import jp.usagi.railway.domain.InspectionKind;
 import jp.usagi.railway.repository.FormationRepository;
 
 /**
- * 検査期限算出. COBOL バッチ URINS01 (batch/cobol/URINS01.cbl) と同一ロジック.
+ * 検査期限算出. 旧 COBOL バッチ URINS01 (Git 履歴) と同一ロジック. 仕様は docs/batch/URINS01.md.
  *
  *   交番検査   : 前回 + 90 日
  *   重要部検査 : 前回 + 4 年 または 走行 60 万 km

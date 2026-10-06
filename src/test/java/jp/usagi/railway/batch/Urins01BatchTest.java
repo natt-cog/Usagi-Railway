@@ -40,13 +40,13 @@ public class Urins01BatchTest {
 
     @Test
     public void overLimitRunMatchesCobolGoldenFile() throws Exception {
-        Path input = Paths.get("batch/cobol/data/FORMATIONS.DAT");
+        Path input = Paths.get("batch/java/data/FORMATIONS.DAT");
         Path output = temporaryFolder.getRoot().toPath().resolve("INSPDUE.DAT");
 
         RunResult result = run(input, output);
 
         assertEquals(4, result.rc);
-        assertArrayEquals(Files.readAllBytes(Paths.get("batch/cobol/expected/INSPDUE.DAT")),
+        assertArrayEquals(Files.readAllBytes(Paths.get("batch/java/expected/INSPDUE.DAT")),
                 Files.readAllBytes(output));
         assertArrayEquals(Files.readAllBytes(BOUNDARY.resolve("00-golden-current/STDOUT.txt")), result.stdout);
     }
@@ -127,7 +127,7 @@ public class Urins01BatchTest {
 
     @Test
     public void crlfLongRecordsAndMissingFinalLfMatchNormalGoldenOutput() throws Exception {
-        byte[] original = Files.readAllBytes(Paths.get("batch/cobol/data/FORMATIONS.DAT"));
+        byte[] original = Files.readAllBytes(Paths.get("batch/java/data/FORMATIONS.DAT"));
         String[] lines = new String(original, StandardCharsets.ISO_8859_1).split("\n");
         StringBuilder transformed = new StringBuilder();
         for (String line : lines) {
@@ -151,7 +151,7 @@ public class Urins01BatchTest {
         RunResult result = run(input, output);
 
         assertEquals(4, result.rc);
-        assertArrayEquals(Files.readAllBytes(Paths.get("batch/cobol/expected/INSPDUE.DAT")),
+        assertArrayEquals(Files.readAllBytes(Paths.get("batch/java/expected/INSPDUE.DAT")),
                 Files.readAllBytes(output));
         assertOutputLinesAreClean(Files.readAllBytes(output));
     }
@@ -196,7 +196,7 @@ public class Urins01BatchTest {
     @Test
     public void mainUsesUtf8WithDefaultPathsAndReturnsProcessStatus() throws Exception {
         Path workingDirectory = temporaryFolder.newFolder("main-defaults").toPath();
-        Files.copy(Paths.get("batch/cobol/data/FORMATIONS.DAT"), workingDirectory.resolve("FORMATIONS.DAT"));
+        Files.copy(Paths.get("batch/java/data/FORMATIONS.DAT"), workingDirectory.resolve("FORMATIONS.DAT"));
 
         ProcessResult result = runMain(workingDirectory);
 
