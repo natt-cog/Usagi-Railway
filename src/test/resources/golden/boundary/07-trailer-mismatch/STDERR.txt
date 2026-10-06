@@ -1,0 +1,2 @@
+libcob: warning: implicit CLOSE of OUT-FILE ('INSPDUE.DAT')
+libcob: warning: implicit CLOSE of FORM-FILE ('FORMATIONS.DAT')
