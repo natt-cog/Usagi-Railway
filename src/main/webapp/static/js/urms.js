@@ -9,16 +9,20 @@
     });
 
     // 製造番号: 全角→半角, 大文字化
+    function normalizeSerial(input) {
+        var v = $(input).val().replace(/[０-９Ａ-Ｚａ-ｚ－]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+        v = $.trim(v).toUpperCase();
+        $(input).val(v);
+        return v;
+    }
     $(document).on('blur', 'input.serial', function () {
-        var v = $(this).val();
-        v = v.replace(/[０-９Ａ-Ｚａ-ｚ－]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
-        $(this).val(v.toUpperCase());
+        normalizeSerial(this);
     });
 
     // 故障登録: 製造番号から搭載位置を照会 (REST API)
     $(document).on('change', 'form.failure input.serial', function () {
         var target = $('#serial-lookup');
-        var serial = $(this).val();
+        var serial = normalizeSerial(this);
         if (serial.length < 6) { target.text(''); return; }
         var ctx = $('#nav a:first').attr('href').replace(/\/dashboard$/, '');
         $.ajax({
