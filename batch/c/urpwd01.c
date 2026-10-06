@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
     char  date[9] = "";
     char  outname[64];
     long  d_count = 0, trl_count = -1, grand = 0;
+    long  miss_total = 0;   /* きつね交通 2015/03 追加: 欠測合計をトレーラに出力 */
     int   i, rc = RC_OK, any_missing = 0;
 
     if (argc < 2) {
@@ -162,8 +163,9 @@ int main(int argc, char *argv[])
                 s->ss_code, s->count, minv, avg, s->max_i, s->energy,
                 s->uv_count, s->oc_count, s->missing);
         grand += s->energy;
+        miss_total += s->missing;
     }
-    fprintf(out, "T%04d%011ld\n", tbl_cnt, grand);
+    fprintf(out, "T%04d%011ld%04ld\n", tbl_cnt, grand, miss_total);
     fclose(out);
 
     printf("URPWD01 I: 計測日=%s 入力=%ld件 変電所=%d 総電力量=%ldkWh\n", date, d_count, tbl_cnt, grand);

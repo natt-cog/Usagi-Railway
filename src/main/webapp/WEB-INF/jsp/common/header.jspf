@@ -16,7 +16,7 @@
 </head>
 <body<c:if test="${autoRefresh}"> data-autorefresh="1"</c:if>>
 <div id="header">
-  <div class="brand"><a href="${ctx}/dashboard">うさぎ鉄道 電力・車両保守システム</a><span class="env">【検証環境】 運用日 <c:out value="${operationDate}" /></span></div>
+  <div class="brand"><a href="${ctx}/dashboard">うさぎ鉄道 電力・車両保守システム</a><span class="env">きつね交通 納入版</span><span class="env">【検証環境】 運用日 <c:out value="${operationDate}" /></span></div>
   <div class="user">
     <sec:authorize access="isAuthenticated()">
       <sec:authentication property="name" />

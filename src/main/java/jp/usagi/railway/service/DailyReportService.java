@@ -88,13 +88,15 @@ public class DailyReportService {
         List<String> out = new ArrayList<String>();
         out.add("H" + date.toString("yyyyMMdd"));
         long grand = 0;
+        long missTotal = 0;
         for (DailyReportRow r : rows) {
             out.add(String.format("D%-4.4s%02d%05d%05d%05d%09d%02d%02d%02d", r.getSubstationCode(),
                     r.getValidCount(), r.getMinVoltageV(), r.getAvgVoltageV(), r.getMaxCurrentA(),
                     r.getEnergyKwh(), r.getUndervoltageCount(), r.getOvercurrentCount(), r.getMissingCount()));
             grand += r.getEnergyKwh();
+            missTotal += r.getMissingCount();
         }
-        out.add(String.format("T%04d%011d", rows.size(), grand));
+        out.add(String.format("T%04d%011d%04d", rows.size(), grand, missTotal));
         return out;
     }
 }
