@@ -292,7 +292,7 @@ COBOL 版は入力の妥当性チェックをほとんど行わない。以下�
 
 「要判断」(G5, G9, G10, G11, G13) は COBOL の実挙動を記録したもの。Java 化の方針決定 (起動方式の設計) で扱いを決め、境界値ゴールデンデータ作成時にケースとして固定する。
 
-決定 (境界値ゴールデンデータ作成時, 付録 B): G5・G9・G11 は COBOL の出力をゴールデンとして固定する。G10・G13 は COBOL の不定値を正解にせず、Java は `URINS01 E:` で始まるメッセージを出して RC=12 でエラー終了とする (入力と期待 RC・メッセージ接頭辞だけを固定)。G10 の「H 無し」は D の有無にかかわらず適用する (0 バイトの入力も含む)。
+決定 (境界値ゴールデンデータ作成時, 付録 B): G5・G9・G11 は COBOL の出力をゴールデンとして固定する。G10・G13 は COBOL の不定値を正解にせず、Java は `URINS01 E:` で始まるメッセージを出して RC=12 でエラー終了とする (入力と期待 RC・メッセージ接頭辞だけを固定)。G10 の「H 無し」は D の有無にかかわらず適用する (0 バイトの入力も含む)。 Java 版での実装方針は §10 (Java 設計) を参照。
 
 ## 8. 実行環境メモ
 
@@ -416,6 +416,204 @@ $ grep -rIil "cobol\|urins01\|inspdue" --exclude-dir=.git --exclude-dir=target -
 
 ---
 
+## 10. Java 設計 (起動方式・クラス構成)
+
+本章は Java 版 URINS01 の設計 (実装は s3.1)。方針は「既存 `InspectionService` の static メソッドを再利用する単独 main (RC を返す CLI)」(決定 `plain-main`)。Spring Batch は使わず、Spring コンテキストも起動しない (純粋なファイル入出力のため)。受け入れ基準は付録 B の全 19 ケース。
+
+### 10.1 クラス構成
+
+| クラス / メソッド | 区分 | 役割 |
+|---|---|---|
+| `jp.usagi.railway.batch.Urins01Batch` | 新規 | バッチ本体。`main` と、テストから呼べる `run` を持つ。状態はローカル変数のみ (static な可変状態を持たない) |
+| `Urins01Batch.main(String[] args)` | 新規 | `int rc = run(args, console)` → `console.flush()` → `System.exit(rc)`。`Throwable` をすべて捕捉して RC=12 にする (§10.5) |
+| `Urins01Batch.run(String[] args, PrintStream console)` (package-private, static) | 新規 | 引数解釈 → 入力読込 → レコード処理 → 出力書込 → サマリ表示。RC (0/4/8/12) を返し、`System.exit` は呼ばない。単体テスト・パリティテストの入口 |
+| `InspectionService.calculate(...)` (static) | 再利用・変更なし | 1 編成分の期限・次回・残日数・判定。`warnDays` は 14 を渡す (G14) |
+| `InspectionService.formatRecord(InspectionDue)` (static) | 再利用・変更なし | D レコードの組み立て。G11 の 4 桁切り捨てはバッチ側で後処理する (§10.4) |
+| `InspectionService.formatDueFile(LocalDate, List)` (static) | 再利用 (H/T 書式の抽出のみ) | 一括整形 (H 1 件 + D + T) のため、H 複数 (G9) と途中打ち切り (G5) を満たせずバッチからは直接呼ばない。s3.1 で H/T の書式を `formatHeader(LocalDate)` / `formatTrailer(int count, int warn, int over)` (public static) として抽出し、`formatDueFile` もそれを呼ぶ形にする。出力は 1 バイトも変えない (純粋なリファクタリング) |
+| `InspectionService.processFormationsFile(...)` (static) | 変更なし | `CobolParityTest` の契約テスト対象として現状のまま残す。バッチからは呼ばない (RC・警告・逐次出力を持たないため。trim も残る) |
+
+二重実装しないもの: 期限・次回・残日数・判定の計算 (`calculate`)、D レコード書式 (`formatRecord`)、H/T 書式 (`formatHeader` / `formatTrailer`)、W/X の件数の数え方 (`formatDueFile` と同じ規則)。
+バッチ側に持つもの: ファイル入出力 (LINE SEQUENTIAL 相当)、レコード区分の振り分け、入力項目の検証、トレーラ件数検証、件数カウンタ、コンソールメッセージ、RC 決定。
+
+### 10.2 起動コマンド
+
+実行可能 WAR (`mvn package` の成果物。`spring-boot-maven-plugin` が作る `WarLauncher` 形式) に含まれる Spring Boot 1.5.22 の `PropertiesLauncher` で、`Urins01Batch` を main クラスとして起動する。
+
+```sh
+java -Dloader.main=jp.usagi.railway.batch.Urins01Batch \
+     -Dloader.path=WEB-INF/classes,WEB-INF/lib \
+     -cp /opt/urms/lib/usagi-railway.war \
+     org.springframework.boot.loader.PropertiesLauncher [入力ファイル] [出力ファイル]
+```
+
+- `-Dloader.path=WEB-INF/classes,WEB-INF/lib` は**必須**。チケットの当初案 (`-cp target/usagi-railway*.war -Dloader.main=... PropertiesLauncher`) だけでは、`PropertiesLauncher` が WAR 内の `WEB-INF/classes` / `WEB-INF/lib` をクラスパスに入れず `ClassNotFoundException` (RC=1) になる (§10.9 の検証 a)。
+- `WEB-INF/lib-provided/` (組込み Tomcat・Jasper) は `loader.path` に入れない。バッチのクラスパスに Web コンテナが載らず、Web アプリも起動しない。
+- `java -jar usagi-railway.war` は `-Dloader.main` を付けても Manifest の `Main-Class: WarLauncher` / `Start-Class: UsagiRailwayApplication` が使われ、Web アプリ (Tomcat :8080) が起動してしまう (検証 f)。**`-jar` は使わない**。
+- `loader.path` の相対パスは WAR 内のエントリとして解決されるため、カレントディレクトリに依存しない。WAR を絶対パスで指定し、別ディレクトリで起動しても動く (検証 e)。カレントディレクトリは入出力ファイルの既定パスにだけ使う (COBOL と同じ)。
+- 起動〜終了は約 0.19 秒 (検証 g。Spring コンテキストを起動しないため)。
+- WAR は Web と同一の成果物を使う。バッチ専用 JAR を別ビルドしないので、Web とバッチで `InspectionService` の版がずれない。
+
+### 10.3 引数・入出力ファイル
+
+| 引数 | 意味 | 既定 |
+|---|---|---|
+| 第 1 引数 | 入力ファイルパス | `FORMATIONS.DAT` (カレントディレクトリ) |
+| 第 2 引数 | 出力ファイルパス | `INSPDUE.DAT` (カレントディレクトリ) |
+| 3 個以上 | `URINS01 E: 引数不正` を表示し RC=12 (入出力ファイルには触れない) | — |
+
+引数なしの起動が COBOL (`ASSIGN TO "FORMATIONS.DAT"` / `"INSPDUE.DAT"`) と同じ動作になる。JP1 からは引数なしで呼ぶ (§10.7)。
+
+**入力 (LINE SEQUENTIAL 相当)**
+
+- 全体を `Files.readAllBytes` で読み、ISO-8859-1 で文字列化する (1 バイト = 1 文字。桁位置がバイト位置と一致し、ASCII 以外のバイトも変換せずに転記できる)。
+- LF で区切って 1 行 = 1 レコード。行末の CR は 1 文字除去する (CRLF 入力も COBOL と同じく受け付ける)。最終行に LF が無くても 1 レコードとして扱う。最後の LF の後ろの空文字列はレコードにしない。
+- 空行は「区分 = 空白」のレコードとして扱い、`W:` 警告の対象 (G7)。
+- 41 桁目以降は無視する (`PIC X(40)` と同じ)。不足分は空白とみなす。ただし D の長さ不足は G13 でエラーにする (§10.4)。
+- 入力ファイルが開けない場合は出力ファイルを作らず (既存ファイルにも触れず) RC=12 (G6)。
+
+**出力**
+
+- ISO-8859-1 で書き、各レコードの末尾に LF を付ける (最終レコードも LF で終わる。CR は付けない)。内容は ASCII のため UTF-8 / ASCII とバイト一致する (G15)。
+- 書き出し前に末尾空白を除去する (LINE SEQUENTIAL の `WRITE` と同じ)。H/D/T はいずれも非空白文字で終わるため、現行書式では実質的に変化しない。
+- 出力は処理順に逐次書く (`BufferedWriter`、try-with-resources で必ず close)。RC=8 では T を書かずに close し、それまでの H/D を残す (G5)。
+
+**コンソール**
+
+- `URINS01 I:` / `W:` / `E:` はすべて標準出力に書く (COBOL の `DISPLAY` と同じ)。標準エラーには予期しない例外のスタックトレースだけを出す。
+- 標準出力は `new PrintStream(new FileOutputStream(FileDescriptor.out), true, "UTF-8")` で **UTF-8 を明示**する。`System.out` のままでは `LANG=C` の環境で `file.encoding=ANSI_X3.4-1968` になり日本語が `???` に化ける (検証 d)。境界値データの `STDOUT.txt` は UTF-8。
+- 行区切りは LF 固定 (`println` は `line.separator` に依存するため使わず `print(msg + "\n")`)。
+
+### 10.4 レコード処理と G1〜G15 の扱い
+
+処理は入力順に 1 レコードずつ行い、最初に発生した終了事由で止める (COBOL の `STOP RUN` と同じく、その後ろのレコードは読まない)。
+
+| 区分 (1 桁目) | 処理 |
+|---|---|
+| `H` | 2〜9 桁目を基準日として検証 (数字 8 桁かつ暦上有効な日付。不正なら G13 エラー)。基準日を更新し、出力 H (`formatHeader`) を書く。件数カウンタはリセットしない (G9) |
+| `D` | H をまだ読んでいなければ G10 エラー。長さ 38 桁未満なら G13 エラー。3 つの前回検査日 (8〜15, 16〜23, 24〜31 桁) を日付検証、走行 km (32〜38 桁) を数字 7 桁で検証 (不正なら G13 エラー)。`calculate(編成番号 6 桁そのまま, ..., 現在の基準日, 14)` → D 出力 → 件数・注意・超過をカウント |
+| `T` | 2〜7 桁目がそれまでの D 件数 (6 桁ゼロ埋め) と一致しなければ `URINS01 E: トレーラ件数不一致` → T を書かずに RC=8 (G4・G5)。件数欄が数字でない・空白の場合も不一致 (COBOL 実測: D 0 件で `T` のみのレコードも RC=8)。一致すれば何も書かずに継続 (T の後ろの D も処理する。ケース 10) |
+| その他 (空行・小文字・空白始まりを含む) | `URINS01 W: 不明なレコード区分 x` (x = 1 桁目。空行は空白) を表示して継続 (G7) |
+
+EOF まで到達したら: H を 1 件も読んでいなければ G10 エラー。読んでいれば T (`formatTrailer(件数, 注意, 超過)`) を書いて close し、`URINS01 I:` を表示、超過 > 0 なら RC=4、それ以外 RC=0。
+
+日付の検証は「数字 8 桁 (`[0-9]{8}`) かつ Joda `LocalDate` として有効 (年 1601〜9999。COBOL `INTEGER-OF-DATE` の有効範囲)」。Joda で解析する前に桁数と文字種 (数字のみ) を確認し、空白や符号を含む値も不正とする。
+
+| # | 対応 (Java 版) | 実装場所 | 確認ケース |
+|---|---|---|---|
+| G1 | ファイル入出力 (§10.3) | バッチ | 全ケース |
+| G2 | 単独 main を `PropertiesLauncher` で起動 (§10.2) | バッチ・ラッパー | 検証 b〜g |
+| G3 | `System.exit(0/4/8/12)` (§10.5) | バッチ | 全ケースの RC |
+| G4 | T の件数検証、不一致で RC=8 | バッチ | 07 |
+| G5 | RC=8 時は H と処理済み D を残し T を書かない。T 後の D は処理しない (COBOL どおり) | バッチ | 07 |
+| G6 | 入力が開けなければ `URINS01 E: FORMATIONS.DAT OPEN ERROR 35`、出力を作らず RC=12 | バッチ | 12 |
+| G7 | 不明区分ごとに `W:` 警告 (§5 と同一文言、空行含む) | バッチ | 08 |
+| G8 | 正常終了時に `I:` サマリ (基準日 = 最後の H、件数は 6 桁ゼロ埋め) | バッチ | 00〜11, 13 |
+| G9 | H ごとに出力 H を書き、以降の D は新基準日で計算 (COBOL どおり) | バッチ | 06 |
+| G10 | D の前に H が無い、または EOF までに H が無い (0 バイト含む) → `E:`、RC=12 | バッチ | 14, 15 |
+| G11 | 残日数の絶対値 10000 以上は下 4 桁 (COBOL どおり)。判定は切り捨て前の値 | バッチ (後処理) | 05 |
+| G12 | 編成番号は 2〜7 桁目を trim せずそのまま `calculate` に渡す。`formatRecord` の `%-6s` は 6 桁の値をそのまま出す | バッチ | 11 |
+| G13 | 不正日付・数字以外の km・38 桁未満の D → `E:`、RC=12 | バッチ | 16, 17, 18 |
+| G14 | 注意日数はバッチ内の定数 14 (`application.properties` は読まない。Web の `urms.inspection.warn-days` はそのまま) | バッチ | 02 |
+| G15 | 入出力 ISO-8859-1 (ASCII 範囲は UTF-8 と同一)、LF、最終行も LF。コンソールは UTF-8 明示 | バッチ | 全ケース (バイト比較) |
+
+**G11・G12 の実装場所と画面・API への影響 (§9.3)**
+
+`formatRecord` は画面「検査期限」と `GET /api/batch/inspection-due` (`inspectionDueFile()` → `formatDueFile`) と共用のため、**共用部分の出力は変えない**。
+
+- G11: バッチは `formatRecord(d)` の結果に対し、`|残日数| >= 10000` のときだけ符号 (41 桁目) の直後から末尾 2 桁 (km フラグ・判定) の手前までを `String.format("%04d", Math.abs(残日数) % 10000)` に置き換える。`InspectionDue` の `daysRemaining` を書き換える方式は採らない (判定は切り捨て前の値で済んでいるが、-10000 日を 0 にすると符号が `+` に変わるため)。共用の `formatRecord` は変えないので、画面・API は 10000 日以上で従来どおり 5 桁 (48 桁行) のまま。
+- G12: `calculate` / `formatRecord` は編成番号を加工しない。trim しているのは `processFormationsFile` だけなので、バッチが trim せずに渡せば共用部分の変更は不要。画面・API の編成番号は DB 由来で、影響しない。
+- `formatHeader` / `formatTrailer` の抽出は出力不変のリファクタリング。`CobolParityTest`・`UrmsApiIT.batchFilesRequireAdmin` (`/api/batch/inspection-due` が `H20261005\nDU3101 ` で始まる) がそのまま通ることで確認する。`calculate` のシグネチャ・結果は変えない (§9.3 C9 の画面・API は影響なし)。
+
+### 10.5 RC・メッセージ対応表 (COBOL → Java)
+
+| RC | 事由 | COBOL のメッセージ | Java のメッセージ | 出力ファイル (Java) | 区分 |
+|---|---|---|---|---|---|
+| 0 | 正常 (超過なし) | `URINS01 I: 基準日=YYYYMMDD 編成=nnnnnn 注意=nnnnnn 超過=nnnnnn` | 同一 | H/D/T 完全 | COBOL どおり |
+| 4 | 正常・超過あり | 同上 | 同一 | H/D/T 完全 | COBOL どおり |
+| — | 不明レコード区分 (継続) | `URINS01 W: 不明なレコード区分 x` | 同一 | — | COBOL どおり |
+| 8 | トレーラ件数不一致 | `URINS01 E: トレーラ件数不一致` | 同一 | H と処理済み D のみ (T なし) | COBOL どおり |
+| 12 | 入力オープンエラー | `URINS01 E: FORMATIONS.DAT OPEN ERROR 35` | `URINS01 E: <入力パス> OPEN ERROR ss` (ファイル無し `35`、読み取り権限なし `37`、その他 `30`)。既定パスでは COBOL と同一文字列 | 作らない (既存ファイルにも触れない) | COBOL どおり (35・37 は GnuCOBOL 3.1.2 で実測。`30` は Java で定義) |
+| 12 | H 無し (G10) | (エラーにならない) | `URINS01 E: ヘッダレコード無し` | 残さない (削除) | Java で定義 |
+| 12 | 日付不正 (G13) | (不定値で継続) | `URINS01 E: 日付不正 レコード=nnnnnn` | 残さない (削除) | Java で定義 |
+| 12 | 走行 km 不正 (G13) | (不定値で継続) | `URINS01 E: 走行KM不正 レコード=nnnnnn` | 残さない (削除) | Java で定義 |
+| 12 | D レコード長不足 (G13) | (不定値で継続) | `URINS01 E: レコード長不足 レコード=nnnnnn` | 残さない (削除) | Java で定義 |
+| 12 | 出力ファイルの作成・書込失敗 | (検査なし) | `URINS01 E: <出力パス> WRITE ERROR` | 不定 (削除を試みる) | Java で定義 |
+| 12 | 引数が 3 個以上 | (該当なし) | `URINS01 E: 引数不正` | 触れない | Java で定義 |
+| 12 | 予期しない例外 | (該当なし) | `URINS01 E: 予期しない例外 <例外クラス名>` (スタックトレースは標準エラー) | 残さない (削除を試みる) | Java で定義 |
+
+- `nnnnnn` (レコード) は入力の何レコード目か (1 始まり、6 桁ゼロ埋め)。
+- RC=8 / RC=12 では `I:` を表示しない (COBOL と同じ)。それまでに出た `W:` はそのまま残る。
+- G10/G13 で出力を削除するのは、RC=12 なら `INSPDUE.DAT` が存在しない (または前回分に触れない) ことを後続の連携 (検修計画システム, §9.6 F2) が前提にできるようにするため。付録 B の mode=error ケースでは「`INSPDUE.DAT` が存在しない」ことも確認する。
+- RC 1 は返さない: JVM の未捕捉例外は RC=1 になる (検証 c) ため、`main` で `Throwable` を捕捉して RC=12 に寄せる。JP1 の判定は 0/4/8/12 だけで足りる。
+- メッセージの `E:` / `W:` / `I:` の接頭辞と区切りの半角空白は COBOL と同じ。日本語部分は UTF-8 で出す (§10.3)。
+
+### 10.6 Java 8 互換と将来の Java 21 移行
+
+- 使う API は Java 8 標準 (`java.nio.file.Files` / `Paths`, `StandardCharsets`, `PrintStream`, try-with-resources) と既存依存の Joda-Time (`org.joda.time.LocalDate`, `Days`) だけ。`var`・`List.of`・`String.repeat` 等の Java 9+ API は使わない (コンパイルは `java.version=1.8`)。
+- 文字コードはすべて明示する。Java 18 以降は既定文字コードが UTF-8 (JEP 400) に変わるが、既定値に依存しないので挙動は変わらない。
+- `sun.*`・内部 API・リフレクションは使わない。Java 17 でも同じ起動コマンドで RC=0 を確認済み (検証「Java 17」)。
+- Spring Boot 3.2 以降へ上げる場合、ランチャーのクラス名が `org.springframework.boot.loader.launch.PropertiesLauncher` に変わる。そのときはラッパー (§10.7) の 1 行だけを直す。バッチのコードは Spring に依存しないので影響しない。
+- 計算は Joda-Time に依存したまま。`java.time` への置き換えは本移行の範囲外 (行う場合は `calculate` の結果が変わらないことを付録 B のケースで確認する)。
+
+### 10.7 JP1 からの起動 (ラッパーと配置)
+
+JP1 ジョブは現在バッチサーバの `/opt/urms/bin/urins01` (COBOL 実行ファイル) を起動して RC を判定している (§9.6 F1)。Java 版は**同じパスに同じ名前のシェルラッパーを置き**、ジョブ定義の起動コマンドを変えずに差し替えられる形にする。ラッパーの作成・配布は s5.1 (Jenkins 切替) で行う。
+
+```sh
+#!/bin/sh
+# /opt/urms/bin/urins01 : URINS01 編成別 検査期限算出 (Java 版)
+URMS_HOME=${URMS_HOME:-/opt/urms}
+JAVA=${URMS_JAVA:-java}            # JRE 8 の java。パスは運用部門の確認結果で決める
+exec "$JAVA" \
+  -Dloader.main=jp.usagi.railway.batch.Urins01Batch \
+  -Dloader.path=WEB-INF/classes,WEB-INF/lib \
+  -cp "$URMS_HOME/lib/usagi-railway.war" \
+  org.springframework.boot.loader.PropertiesLauncher "$@"
+```
+
+- `exec` で java に置き換わるため、RC 0/4/8/12 がそのまま JP1 に返る。JP1 側の RC 判定 (0/4 正常, 8/12 異常) は変更不要。
+- カレントディレクトリは変えない。JP1 ジョブの作業ディレクトリにある `FORMATIONS.DAT` を読み `INSPDUE.DAT` を書く動作は COBOL と同じ。
+- 配置: `/opt/urms/bin/urins01` (ラッパー、実行権限付き)、`/opt/urms/lib/usagi-railway.war` (Jenkins の `Package WAR` の成果物と同一の WAR)。
+- ラッパーが日本語を出さないので、ラッパー自体の文字コード設定は不要 (メッセージの UTF-8 化は Java 側で行う)。
+
+**運用部門への依頼事項 (リポジトリ外)**
+
+1. バッチサーバ `urms-bat-stg01` と本番機に JRE 8 があるか確認し、`java` のフルパスを連絡してもらう (§9.6 F3)。無ければ導入を依頼。
+2. `/opt/urms/lib/` の作成と `jp1adm` の読み取り権限。
+3. JP1 ジョブ定義: 起動コマンドは `/opt/urms/bin/urins01` のまま変更不要の想定。RC 判定 (0/4/8/12) と作業ディレクトリが現行どおりであることの確認、および Java 起動に必要なら環境変数 (`URMS_JAVA`) の追加 (§9.6 F1)。
+4. 切替当日の旧 `urins01` (COBOL 実行ファイル) の退避と、切り戻し手順 (旧ファイルを戻すだけで COBOL に戻る)。
+5. 標準出力の日本語が UTF-8 で出ることの周知 (JP1 のログ閲覧側の文字コード)。COBOL の GnuCOBOL 版も UTF-8 で出しているため現状と同じ想定だが、確認を依頼する。
+
+### 10.8 テスト設計 (s4.1 / s4.2)
+
+Jenkins は `-Dtest=*Test` / `*IT` に一致するクラスだけを実行する (§9.2 B6) ため、クラス名をこれに合わせる。
+
+| テストクラス | 内容 |
+|---|---|
+| `jp.usagi.railway.batch.Urins01BatchTest` | `run` の単体テスト: 引数の既定値・3 個以上、CRLF・最終行 LF なし・41 桁以上の入力、出力の LF・末尾空白、`LANG=C` 相当でもメッセージが UTF-8 であること、G11 の後処理 (9999 / 10000 / 12230 / -10000 日) |
+| `jp.usagi.railway.batch.Urins01BoundaryParityTest` | `cases.tsv` の 19 ケースを一時ディレクトリで `run` に通す。mode=golden: `INSPDUE.DAT` (有無を含む)・RC・標準出力を `INSPDUE.DAT` / `RC` / `STDOUT.txt` とバイト比較。mode=error: RC=12、標準出力の最終行が `URINS01 E:` で始まる、`INSPDUE.DAT` が存在しない |
+| `CobolParityTest` / `UrmsApiIT` (既存) | `formatHeader` / `formatTrailer` 抽出後も無変更で通ること (画面・API 出力の不変確認) |
+
+起動コマンド自体 (WAR + `PropertiesLauncher` + RC の受け渡し) は、Java 版の実行スクリプト (s4 以降で `batch/cobol/run.sh` 相当を作る) で実際に WAR を起動して確認する。
+
+### 10.9 起動コマンドの検証結果 (設計時の最小検証)
+
+スクラッチコピー (リポジトリ外) に検証用の main クラス `jp.usagi.railway.batch.LauncherProbe` を一時的に追加し、`JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 mvn -B -q -DskipTests package` で WAR を作って確認した。プローブは `InspectionService.calculate` / `formatRecord` を呼び、引数で指定した終了コードで `System.exit` する。リポジトリには何も追加していない。
+
+| # | 内容 | 結果 |
+|---|---|---|
+| a | `java -cp target/usagi-railway.war -Dloader.main=...LauncherProbe org.springframework.boot.loader.PropertiesLauncher` (当初案) | RC=1, `ClassNotFoundException` |
+| b | a に `-Dloader.path=WEB-INF/classes,WEB-INF/lib` を追加 | 起動成功。Joda-Time は `WEB-INF/lib/joda-time-2.9.9.jar`、`InspectionService` は `WEB-INF/classes` から読込。`DU3101 202612242027011520261015Z20261015+0010 W` を出力 |
+| c | b の形で終了コード 0 / 4 / 8 / 12 を指定、および未捕捉例外 | RC=0 / 4 / 8 / 12 がそのまま返る。未捕捉例外は RC=1 |
+| d | `LANG=C LC_ALL=C` で起動 | UTF-8 明示の `PrintStream` は日本語を UTF-8 で出力。`System.out` は `file.encoding=ANSI_X3.4-1968` になり日本語が `???` |
+| e | 別のカレントディレクトリから WAR を絶対パスで指定 | 成功 (RC=0) |
+| f | `java -Dloader.main=...LauncherProbe -jar target/usagi-railway.war` | `WarLauncher` で Web アプリ (Tomcat :8080, `/urms`) が起動。単独 main にならない |
+| g | b の形の起動〜終了時間 (3 回) | 各 0.19 秒 |
+| h | WAR の Manifest | `Main-Class: org.springframework.boot.loader.WarLauncher`, `Start-Class: jp.usagi.railway.UsagiRailwayApplication`, `PropertiesLauncher` を同梱、Tomcat は `WEB-INF/lib-provided/` |
+| Java 17 | b と同じコマンドを OpenJDK 17.0.19 で実行 | RC=0 (将来の Java 移行で起動方式がそのまま使える) |
+
+使用 JDK: OpenJDK 1.8.0_504 (`/usr/lib/jvm/java-8-openjdk-amd64`)。Spring Boot 1.5.22.RELEASE。
+
 ## 付録 A. 実測ケース (GnuCOBOL 3.1.2 / 既存 Java `processFormationsFile`)
 
 基準日はすべて `20261005`。`|` は行末。COBOL と Java の出力が一致したケースは「一致」と記す。
@@ -457,7 +655,7 @@ Java 版のパリティテスト用に、COBOL URINS01 を `batch/cobol/run.sh` 
 | `COBOL_RC` / `COBOL_STDOUT.txt` | mode=error のケースのみ。COBOL の実挙動の参考記録で、正解ではない |
 
 - **mode=golden**: Java は `INSPDUE.DAT` (有無を含む)・`RC`・`STDOUT.txt` とバイト一致させる。
-- **mode=error**: COBOL の出力は正解にしない (不定値、または H 無し)。Java は `URINS01 E:` で始まるメッセージを出して RC=12 で異常終了すること (§7.2 G10・G13 の決定)。`E:` 以降の文言と出力ファイルの扱いは起動方式の設計で決める。
+- **mode=error**: COBOL の出力は正解にしない (不定値、または H 無し)。Java は `URINS01 E:` で始まるメッセージを出して RC=12 で異常終了すること (§7.2 G10・G13 の決定)。`E:` 以降の文言と出力ファイルの扱いは起動方式の設計で決める (§10.5 で決定: 文言は表のとおり、`INSPDUE.DAT` は残さない)。
 
 基準日は 06 の 2 件目以外すべて `20261005`。
 
