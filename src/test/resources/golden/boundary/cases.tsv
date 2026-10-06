@@ -1,0 +1,23 @@
+# URINS01 境界値ゴールデンケース一覧 (batch/cobol/gen-boundary.sh が読む)
+# case	mode	java_rc	gap	description
+# mode=golden : COBOL の INSPDUE.DAT / RC / STDOUT.txt を正解とし、Java はバイト一致させる
+# mode=error  : COBOL の結果は不定値のため正解にしない (COBOL_RC / COBOL_STDOUT.txt は参考記録)。Java は java_rc で異常終了する
+00-golden-current	golden	=	-	現行 batch/cobol/data/FORMATIONS.DAT (6 編成)
+01-leap-add-years	golden	=	-	2/29 起点の重要部 +4 年・全般 +8 年 (うるう年/平年, 100・400 年規則), 交番 +90 日のうるう日跨ぎ
+02-days-boundary	golden	=	-	残日数 -1 / 0 / 1 / 14 / 15
+03-km-boundary	golden	=	-	走行 0 / 569999 / 570000 / 599999 / 600000 / 9999999 km, 残日数と km の判定優先
+04-same-day-priority	golden	=	-	K・J・Z 期限の同日 (K=J=Z, K=J, J=Z, K=Z) と J/Z が先行するケース
+05-days-over-9999	golden	=	G11	残日数 9999 / 10000 / 10000 超 / -10000 (下 4 桁切り捨て)
+06-multi-header	golden	=	G9	H レコード 2 件 (2 件目以降は新基準日)
+07-trailer-mismatch	golden	=	G4,G5	トレーラ件数不一致 (RC=8, T 未出力, T 後の D は未処理)
+08-unknown-record	golden	=	G7	空行・Z・小文字 h・先頭空白の D (不明レコード区分の警告)
+09-no-trailer	golden	=	-	T レコード無し
+10-detail-after-trailer	golden	=	-	T の後ろに D
+11-formation-spaces	golden	=	G12	編成番号の前後空白・全空白
+12-no-input-file	golden	=	G6	入力ファイル無し (RC=12, INSPDUE.DAT 作成なし)
+13-header-only	golden	=	-	H と T000000 のみ (D 0 件)
+14-empty-file	golden	=	-	空ファイル (0 バイト)
+15-no-header	error	12	G10	H レコード無し
+16-invalid-date	error	12	G13	存在しない日付 20230230
+17-km-non-numeric	error	12	G13	走行 km に数字以外
+18-short-record	error	12	G13	38 桁未満の短い D レコード
