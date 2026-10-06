@@ -626,7 +626,7 @@ Jenkins は `-Dtest=*Test` / `*IT` に一致するクラスだけを実行する
 | 起動インターフェース | 相対入力パス成功。`/nonexistent` は RC=12 / 終了コード 12。誤った期待ファイルは `GOLDEN MISMATCH` / 終了コード 1。`URMS_WAR` 指定時は再ビルドなし |
 | COBOL 既定 fixture | RC=4 / `GOLDEN OK`。Java と `INSPDUE.DAT`・`SYSOUT.TXT` が一致 |
 
-ログと境界値別の結果表: `/home/ubuntu/unt3-5-logs/urins01-java/`。
+境界値ケースは各ケースの `FORMATIONS.DAT` を `batch/cobol/run.sh <入力> -` と `batch/java/run.sh <入力> -` に与え、`work/RC.TXT`・`work/SYSOUT.TXT`・`work/INSPDUE.DAT` (有無を含む) を比較した。
 
 ## 付録 A. 実測ケース (GnuCOBOL 3.1.2 / 既存 Java `processFormationsFile`)
 
