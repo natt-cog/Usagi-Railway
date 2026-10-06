@@ -70,6 +70,7 @@ curl -u admin:admin123 "http://localhost:8080/urms/api/batch/daily-report?date=2
 JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 mvn test   # 33 件 (JUnit 4, SpringRunner, H2 Oracle モード)
 batch/c/run.sh                                           # URPWD01 をビルド・実行し expected/DAILY_20261005.DAT と比較
 batch/cobol/run.sh                                       # URINS01 をビルド・実行し expected/INSPDUE.DAT と比較
+batch/java/run.sh                                        # URINS01 Java 版を WAR から起動し expected/INSPDUE.DAT と比較
 ```
 
 | テスト | 検証内容 |
@@ -102,6 +103,7 @@ src/main/resources/db/migration  Flyway 4: V1 スキーマ (Oracle DDL 方言), 
 src/main/webapp/WEB-INF/jsp      JSP/JSTL 画面 (日本語 UI) + jQuery 1.12.4
 batch/c/urpwd01.c                C 電力日報バッチ (2004 年製), data/, expected/, run.sh
 batch/cobol/URINS01.cbl          COBOL 検査期限算出バッチ (1997 年製), data/, expected/, run.sh
+batch/java/run.sh                Java 版 URINS01 起動スクリプト (WAR)
 demo/reset.sh                    デモ環境リセット
 docs/DEMO.md                     デモ台本
 docs/images/                     README 用スクリーンショット / GIF
