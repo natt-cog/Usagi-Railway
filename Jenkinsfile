@@ -1,6 +1,7 @@
 // うさぎ鉄道 電力・車両保守システム (URMS)  ビルドパイプライン
 // Jenkins 2.x (交通システム部 CI サーバ: urms-ci01)  --  2017/09 移行 (Ant → Maven)
 pipeline {
+    // URINS01 は Java 化済みだが、C URPWD01 の gcc が必要なためラベルは据え置き (付け替えは CI 管理者が判断)
     agent { label 'rhel7-jdk8-cobol' }
 
     tools {
@@ -51,18 +52,23 @@ pipeline {
             }
         }
 
-        stage('Batch Golden Test') {
-            // gcc 4.8 / GnuCOBOL 2.2 は CI エージェントにプリインストール
-            parallel {
-                stage('C URPWD01')      { steps { sh 'cd batch/c && ./run.sh' } }
-                stage('COBOL URINS01')  { steps { sh 'cd batch/cobol && ./run.sh' } }
-            }
-        }
-
         stage('Package WAR') {
             steps {
                 sh 'mvn -B -s /opt/jenkins/settings.xml -DskipTests package'
-                archiveArtifacts artifacts: 'target/*.war, batch/c/work/urpwd01, batch/cobol/work/urins01', fingerprint: true
+            }
+        }
+
+        stage('Batch Golden Test') {
+            // gcc 4.8 は CI エージェントにプリインストール。Java URINS01 は Package WAR の WAR を使う (再ビルドしない)
+            parallel {
+                stage('C URPWD01')     { steps { sh 'cd batch/c && ./run.sh' } }
+                stage('Java URINS01')  { steps { sh 'cd batch/java && URMS_WAR="$WORKSPACE/target/usagi-railway.war" ./run.sh' } }
+            }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.war, batch/c/work/urpwd01', fingerprint: true
             }
         }
 
@@ -81,7 +87,8 @@ pipeline {
                 sh '''
                   scp target/usagi-railway-*.war wasadmin@${WAS_HOST_STG}:/opt/IBM/deploy/
                   ssh wasadmin@${WAS_HOST_STG} "/opt/IBM/WebSphere/AppServer/bin/wsadmin.sh -lang jython -f /opt/IBM/deploy/redeploy.py urms"
-                  scp batch/c/work/urpwd01 batch/cobol/work/urins01 jp1adm@urms-bat-stg01:/opt/urms/bin/
+                  scp batch/c/work/urpwd01 batch/java/urins01 jp1adm@urms-bat-stg01:/opt/urms/bin/
+                  scp target/usagi-railway.war jp1adm@urms-bat-stg01:/opt/urms/lib/usagi-railway.war
                 '''
             }
         }
