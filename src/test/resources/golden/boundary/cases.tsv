@@ -1,4 +1,4 @@
-# URINS01 境界値ゴールデンケース一覧 (batch/cobol/gen-boundary.sh が読む)
+# URINS01 境界値ゴールデンケース一覧 (COBOL 退役前のコミット 745a86d の batch/cobol/gen-boundary.sh が読む)
 # case	mode	java_rc	gap	description
 # mode=golden : COBOL の INSPDUE.DAT / RC / STDOUT.txt を正解とし、Java はバイト一致させる
 # mode=error  : COBOL の結果は不定値のため正解にしない (COBOL_RC / COBOL_STDOUT.txt は参考記録)。Java は "URINS01 E:" で始まるメッセージを出して java_rc で異常終了する

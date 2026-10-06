@@ -655,7 +655,7 @@ Jenkins は `-Dtest=*Test` / `*IT` に一致するクラスだけを実行する
 
 ## 付録 B. 境界値ゴールデンデータ (`src/test/resources/golden/boundary/`)
 
-Java 版のパリティテスト用に、COBOL URINS01 を `batch/cobol/run.sh` で実行して作成した境界値データ。ケース定義は [`cases.tsv`](../../src/test/resources/golden/boundary/cases.tsv)、再生成は `batch/cobol/gen-boundary.sh` (GnuCOBOL 3.1.2.0 で実行。再実行しても差分が出ないことを確認済み)。
+Java 版のパリティテスト用に、COBOL URINS01 を `batch/cobol/run.sh` で実行して作成した境界値データ。ケース定義は [`cases.tsv`](../../src/test/resources/golden/boundary/cases.tsv)、再生成は COBOL 退役前のコミット `745a86d` で `batch/cobol/gen-boundary.sh` を実行する (GnuCOBOL 3.1.2.0 で実行。再実行しても差分が出ないことを確認済み。COBOL ソースは s5.2 で削除済み)。
 
 各ケースのディレクトリ構成:
 

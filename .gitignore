@@ -14,8 +14,7 @@ target/
 .vscode/
 .factorypath
 
-# COBOL batch work dir
-batch/cobol/work/
+# batch work dirs
 batch/c/work/
 batch/java/work/
 

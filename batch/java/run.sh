@@ -1,14 +1,14 @@
 #!/bin/sh
 # URINS01 Java 実行スクリプト
 #   使い方: ./run.sh [FORMATIONS.DAT へのパス] [期待する INSPDUE.DAT のパス | -]
-#   既定値: ../cobol/data/FORMATIONS.DAT, ../cobol/expected/INSPDUE.DAT
+#   既定値: data/FORMATIONS.DAT, expected/INSPDUE.DAT
 #   出力  : work/INSPDUE.DAT, work/RC.TXT, work/SYSOUT.TXT, work/SYSERR.TXT
 set -e
 CALLER_DIR=$(pwd)
 SCRIPT_DIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
 REPO_ROOT=$(CDPATH= cd "$SCRIPT_DIR/../.." && pwd)
-DEFAULT_INPUT=$SCRIPT_DIR/../cobol/data/FORMATIONS.DAT
-DEFAULT_EXPECTED=$SCRIPT_DIR/../cobol/expected/INSPDUE.DAT
+DEFAULT_INPUT=$SCRIPT_DIR/data/FORMATIONS.DAT
+DEFAULT_EXPECTED=$SCRIPT_DIR/expected/INSPDUE.DAT
 
 if [ "$#" -ge 1 ]; then
   INPUT=$1
