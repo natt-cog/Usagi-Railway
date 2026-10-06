@@ -62,7 +62,7 @@ public class UrmsApiIT {
                 .content("H20261006\nDSS0108000138004200000580001\nT000001\n"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accepted").value(1))
-                .andExpect(jsonPath("$.alarmsRaised").value(1));
+                .andExpect(jsonPath("$.alarmsRaised").value(2));
         mvc.perform(post("/api/telemetry").with(basic("kenshu", "kenshu123")).contentType(MediaType.TEXT_PLAIN)
                 .content("H20261006\nT000000\n"))
                 .andExpect(status().isForbidden());

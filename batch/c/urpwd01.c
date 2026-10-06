@@ -32,8 +32,8 @@
 #define REC_LEN       128
 
 /* 警報判定閾値 (直流 1500V き電)  ※ application.properties の urms.alarm.* と合わせること */
-#define UV_THRESHOLD  1350   /* 電圧低下 [V]  未満で計上 */
-#define OC_THRESHOLD  4000   /* 過電流   [A]  超過で計上 */
+#define UV_THRESHOLD  1400   /* 電圧低下 [V]  未満で計上 (かめ電鉄 2012/06 変更) */
+#define OC_THRESHOLD  3800   /* 過電流   [A]  超過で計上 (かめ電鉄 2012/06 変更) */
 
 #define RC_OK         0
 #define RC_WARN       4

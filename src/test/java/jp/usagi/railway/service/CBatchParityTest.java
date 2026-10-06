@@ -22,7 +22,7 @@ public class CBatchParityTest {
         List<String> expected = GoldenFiles.read("DAILY_20261005_C.DAT");
 
         List<String> actual = DailyReportService.format(tlm.getDate(),
-                DailyReportService.summarize(tlm.getRecords(), 1350, 4000));
+                DailyReportService.summarize(tlm.getRecords(), 1400, 3800));
 
         assertEquals(expected.size(), actual.size());
         for (int i = 0; i < expected.size(); i++) {
