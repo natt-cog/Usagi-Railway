@@ -292,9 +292,12 @@ COBOL 版は入力の妥当性チェックをほとんど行わない。以下�
 
 「要判断」(G5, G9, G10, G11, G13) は COBOL の実挙動を記録したもの。Java 化の方針決定 (起動方式の設計) で扱いを決め、境界値ゴールデンデータ作成時にケースとして固定する。
 
+決定 (境界値ゴールデンデータ作成時, 付録 B): G5・G9・G11 は COBOL の出力をゴールデンとして固定する。G10・G13 は COBOL の不定値を正解にせず、Java は RC=12 でエラー終了とする (入力と期待 RC だけを固定)。
+
 ## 8. 実行環境メモ
 
-- `run.sh` は `cobc -x -o work/urins01 URINS01.cbl` でビルドし、`work/` に入力をコピーして実行。`expected/INSPDUE.DAT` と `diff` で比較する。
+- `run.sh [入力] [期待出力 | -]` は `cobc -x -o work/urins01 URINS01.cbl` でビルドし、`work/` に入力をコピーして実行。期待出力 (既定 `expected/INSPDUE.DAT`, `-` で比較なし) と `diff` で比較する。入力ファイルが存在しない場合はコピーせずに実行し、COBOL 自身が RC=12 を返す。実行結果は `work/RC.TXT` / `work/SYSOUT.TXT` / `work/SYSERR.TXT` にも保存される。
+- `gen-boundary.sh` は付録 B の境界値ゴールデンデータを `run.sh` 経由で再生成する。
 - バージョン表記の不一致: Jenkinsfile のコメントは GnuCOBOL 2.2、`run.sh` のコメントは 3.x、本書の実測環境は GnuCOBOL 3.1.2.0。
 - Jenkinsfile: `Batch Golden Test` ステージで `batch/cobol/run.sh` を実行、`work/urins01` をアーカイブし、ステージングの `jp1adm@urms-bat-stg01:/opt/urms/bin/` に scp。
 - 入出力ファイル名はプログラム内に固定 (`ASSIGN TO "FORMATIONS.DAT"` / `"INSPDUE.DAT"`)。カレントディレクトリからの相対パス。
@@ -325,3 +328,47 @@ COBOL 版は入力の妥当性チェックをほとんど行わない。以下�
 | 16 | 入力ファイル無し | 12 | `E: FORMATIONS.DAT OPEN ERROR 35`, `INSPDUE.DAT` 作成なし | (入口なし) |
 
 (ケース 10 は桁ずれ入力の確認用で、14 と同種のため省略)
+
+## 付録 B. 境界値ゴールデンデータ (`src/test/resources/golden/boundary/`)
+
+Java 版のパリティテスト用に、COBOL URINS01 を `batch/cobol/run.sh` で実行して作成した境界値データ。ケース定義は [`cases.tsv`](../../src/test/resources/golden/boundary/cases.tsv)、再生成は `batch/cobol/gen-boundary.sh` (GnuCOBOL 3.1.2.0 で実行。再実行しても差分が出ないことを確認済み)。
+
+各ケースのディレクトリ構成:
+
+| ファイル | 内容 |
+|---|---|
+| `FORMATIONS.DAT` | 入力 (ケース 12 のみ無し) |
+| `INSPDUE.DAT` | COBOL の出力ファイル。作成されなかった場合 (ケース 12) は無し |
+| `RC` | COBOL の戻り値 |
+| `STDOUT.txt` | COBOL の標準出力 (UTF-8)。行末空白も含めてそのまま (ケース 08) |
+| `STDERR.txt` | 標準エラーが空でない場合のみ (ケース 07 の libcob 警告)。ランタイム依存のため比較対象外 |
+| `COBOL_RC` / `COBOL_STDOUT.txt` | mode=error のケースのみ。COBOL の実挙動の参考記録で、正解ではない |
+
+- **mode=golden**: Java は `INSPDUE.DAT` (有無を含む)・`RC`・`STDOUT.txt` とバイト一致させる。
+- **mode=error**: COBOL は不定値を出力するため正解にしない。Java は RC=12 で異常終了すること (§7.2 G10・G13 の決定)。メッセージ文言と出力ファイルの扱いは起動方式の設計で決める。
+
+基準日は 06 の 2 件目以外すべて `20261005`。
+
+| ケース | mode | 内容 | COBOL RC | 主な期待値 (COBOL 実測) | 関連 |
+|---|---|---|---|---|---|
+| 00-golden-current | golden | 現行 `batch/cobol/data/FORMATIONS.DAT` | 4 | `expected/INSPDUE.DAT` と同一 | A-00 |
+| 01-leap-add-years | golden | 2/29 起点の年加算、交番 +90 日のうるう日跨ぎ | 4 | 20240229+4→`20280229`, 20960229+4→`21000228`, 23960229+4→`24000229`, 21960229+4→`22000228`, 22920229+8→`23000228`, 19920229+8→`20000229`, 交番 20231201→`20240229`, 20241201→`20250301` | §3.4, A-09 |
+| 02-days-boundary | golden | 残日数 -1 / 0 / 1 / 14 / 15 | 4 | `-0001 X`, `+0000 W`, `+0001 W`, `+0014 W`, `+0015 N` | §3.7, A-07 |
+| 03-km-boundary | golden | 走行 km 境界と判定優先 | 4 | 0・569999 km `N`, 570000・599999 km `W`, 600000・9999999 km `KX`, 残 -1 日 + 570000 km `X` (フラグ空白), 残 14 日 + 600000 km `KX` | §3.7, A-07 |
+| 04-same-day-priority | golden | 期限同日の優先順位 | 0 | K=J=Z→`K`, K=J<Z→`K`, J=Z<K→`J`, K=Z<J→`K`, J<K→`J`, Z<J<K→`Z` | §3.5, A-08 |
+| 05-days-over-9999 | golden | 残日数 4 桁超 | 4 | 9999 日 `+9999`, 10000 日 `+0000 N`, 12230 日 `+2230`, -10000 日 `-0000 X` | G11, A-06 |
+| 06-multi-header | golden | H 2 件 (20261005, 20261101) | 4 | H を 2 回出力、2 件目の D は新基準日で `-0012 X`。`I:` の基準日は `20261101` | G9, A-05 |
+| 07-trailer-mismatch | golden | T 件数 3 / D 2 件、T の後ろに D | 8 | H と D 2 件のみ (T 無し、T 後の D は未処理)。`E: トレーラ件数不一致` | G4, G5, A-01 |
+| 08-unknown-record | golden | 空行・`Zjunk`・小文字 `h`・先頭空白の D | 0 | 警告 4 行 (区分 空白 / `Z` / `h` / 空白)、D 1 件のみ処理 | G7, A-02 |
+| 09-no-trailer | golden | T 無し | 0 | T を出力 (件数 1) | A-03 |
+| 10-detail-after-trailer | golden | T の後ろに D | 4 | D 2 件とも出力、T 件数 2 | A-04 |
+| 11-formation-spaces | golden | 編成番号 ` U31  ` / `U3101 ` / 全空白 | 0 | 6 桁をそのまま転記 | G12, A-15 |
+| 12-no-input-file | golden | 入力ファイル無し | 12 | `E: FORMATIONS.DAT OPEN ERROR 35`、`INSPDUE.DAT` 作成なし | G6, A-16 |
+| 13-header-only | golden | H と `T000000` のみ | 0 | `H20261005` と `T000000000000000000` | — |
+| 14-empty-file | golden | 0 バイトの入力 | 0 | `T000000000000000000` のみ、`I:` は `基準日=00000000` | — (注) |
+| 15-no-header | error | H 無しで D 1 件 | (0) | Java は RC=12 | G10, A-11 |
+| 16-invalid-date | error | 存在しない日付 20230230 | (4) | Java は RC=12 | G13, A-12 |
+| 17-km-non-numeric | error | 走行 km に `A` | (0) | Java は RC=12 | G13, A-13 |
+| 18-short-record | error | 38 桁未満の D | (4) | Java は RC=12 | G13, A-14 |
+
+(注) 14 も H レコードが無いが、D が 0 件で不定値が出ないため COBOL の出力をゴールデンとした。G10 の RC=12 は「H より前に D がある」場合に適用する想定。起動方式の設計で H 無しを一律エラーとする場合は本ケースを mode=error に変更すること。

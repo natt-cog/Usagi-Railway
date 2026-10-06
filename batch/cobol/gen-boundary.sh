@@ -1,4 +1,6 @@
 #!/bin/sh
+# URINS01 境界値ゴールデンデータ生成 (src/test/resources/golden/boundary/cases.tsv の全ケースを run.sh で実行し結果を保存)
+#   使い方: batch/cobol/gen-boundary.sh   再実行して git diff が出なければ再現性あり
 set -e
 
 SCRIPT_DIR=$(CDPATH= cd "$(dirname "$0")" && pwd)
