@@ -3,8 +3,9 @@
 | 項目 | 内容 |
 |---|---|
 | プログラム ID | `URINS01` |
-| ソース | [`batch/cobol/URINS01.cbl`](../../batch/cobol/URINS01.cbl) (GnuCOBOL, 約 270 行) |
-| 実行スクリプト | [`batch/cobol/run.sh`](../../batch/cobol/run.sh) |
+| ソース | [`batch/cobol/URINS01.cbl`](https://github.com/natt-cog/Usagi-Railway/blob/745a86d42c0411697f1879ac8605573a15a80628/batch/cobol/URINS01.cbl) (GnuCOBOL, 約 270 行。s5.2 で削除済みのため退役前のコミット `745a86d` へのリンク) |
+| 実行スクリプト | [`batch/cobol/run.sh`](https://github.com/natt-cog/Usagi-Railway/blob/745a86d42c0411697f1879ac8605573a15a80628/batch/cobol/run.sh) (同上, `745a86d`) |
+| Java 版 (移行後) | [`Urins01Batch.java`](../../src/main/java/jp/usagi/railway/batch/Urins01Batch.java)、実行スクリプト [`batch/java/run.sh`](../../batch/java/run.sh)、JP1 用ラッパー [`batch/java/urins01`](../../batch/java/urins01) (§10) |
 | 業務 | 車両保守 (検修) 日次バッチ。編成ごとに交番・重要部・全般検査の期限と次回検査を算出し、判定 (正常/注意/超過) を付ける |
 | 入力 | `FORMATIONS.DAT` 編成検査実績 抽出ファイル |
 | 出力 | `INSPDUE.DAT` 検査期限ファイル (検修計画システムへ連携) |
@@ -296,11 +297,11 @@ COBOL 版は入力の妥当性チェックをほとんど行わない。以下�
 
 ## 8. 実行環境メモ
 
-- `run.sh [入力] [期待出力 | -]` は `cobc -x -o work/urins01 URINS01.cbl` でビルドし、`work/` に入力をコピーして実行。期待出力 (既定 `expected/INSPDUE.DAT`, `-` で比較なし) と `diff` で比較する。入力ファイルが存在しない場合はコピーせずに実行し、COBOL 自身が RC=12 を返す。実行結果は `work/RC.TXT` / `work/SYSOUT.TXT` / `work/SYSERR.TXT` にも保存される。
+- (COBOL 版, `745a86d` まで) `run.sh [入力] [期待出力 | -]` は `cobc -x -o work/urins01 URINS01.cbl` でビルドし、`work/` に入力をコピーして実行。期待出力 (既定 `expected/INSPDUE.DAT`, `-` で比較なし) と `diff` で比較する。入力ファイルが存在しない場合はコピーせずに実行し、COBOL 自身が RC=12 を返す。実行結果は `work/RC.TXT` / `work/SYSOUT.TXT` / `work/SYSERR.TXT` にも保存される。
 - `batch/java/run.sh [FORMATIONS.DAT へのパス] [期待する INSPDUE.DAT のパス | -]` は同じインターフェースで Java 版を実行し、`batch/java/work/` に結果を保存する。`URMS_WAR` 未指定時は最新の WAR を使い、無い場合または `src/main` / `pom.xml` が WAR より新しい場合は Maven で自動ビルドする。`URMS_WAR` 指定時はビルドを省略し、Java は `URMS_JAVA`、未指定なら `JAVA_HOME/bin/java` (JAVA_HOME も未指定なら `java`) を使う。起動は `batch/java/urins01` ラッパー経由。
-- `gen-boundary.sh` は付録 B の境界値ゴールデンデータを `run.sh` 経由で再生成する。
-- バージョン表記の不一致: Jenkinsfile のコメントは GnuCOBOL 2.2、`run.sh` のコメントは 3.x、本書の実測環境は GnuCOBOL 3.1.2.0。
-- Jenkinsfile: `Batch Golden Test` ステージで `batch/cobol/run.sh` を実行、`work/urins01` をアーカイブし、ステージングの `jp1adm@urms-bat-stg01:/opt/urms/bin/` に scp。
+- (COBOL 版, `745a86d` まで) `gen-boundary.sh` は付録 B の境界値ゴールデンデータを `run.sh` 経由で再生成する。
+- (COBOL 版, `745a86d` 時点) バージョン表記の不一致: Jenkinsfile のコメントは GnuCOBOL 2.2、`run.sh` のコメントは 3.x、本書の実測環境は GnuCOBOL 3.1.2.0。
+- (COBOL 版, s5.1 で `Java URINS01` ステージへ切替済み) Jenkinsfile: `Batch Golden Test` ステージで `batch/cobol/run.sh` を実行、`work/urins01` をアーカイブし、ステージングの `jp1adm@urms-bat-stg01:/opt/urms/bin/` に scp。
 - 入出力ファイル名はプログラム内に固定 (`ASSIGN TO "FORMATIONS.DAT"` / `"INSPDUE.DAT"`)。カレントディレクトリからの相対パス。
 
 ## 9. 影響範囲 (呼び出し元・依存の棚卸し)
@@ -318,7 +319,7 @@ COBOL バッチ URINS01 に依存している箇所の一覧。移行方針 (COB
 | # | 箇所 | 依存内容 | 分類 | 担当 | 備考 |
 |---|---|---|---|---|---|
 | A1 | `batch/cobol/URINS01.cbl` | COBOL ソース本体 | 削除 | s5.2 | s4.1 (境界値ゴールデン作成) とパリティ確認が終わるまで残す |
-| A2 | `batch/cobol/run.sh` | `cobc -x` でビルドして実行、RC >= 8 で異常終了、RC 0/4 なら `expected/INSPDUE.DAT` と diff | 削除 | s5.2 | Java 版実行スクリプト (s3.2) が置き換える。RC 判定 (>= 8 異常) と `GOLDEN OK` / `GOLDEN MISMATCH` の比較手順は引き継ぐ |
+| A2 | `batch/cobol/run.sh` | `cobc -x` でビルドして実行、RC >= 8 で異常終了、RC 0/4 なら `expected/INSPDUE.DAT` と diff | 削除 | s5.2 | Java 版実行スクリプト (s3.2) が置き換える。RC 判定 (>= 8 異常) と `GOLDEN OK` / `GOLDEN MISMATCH` の比較手順は引き継ぐ。**対応済み**: s5.2 で削除、後継は `batch/java/run.sh` |
 | A3 | `batch/cobol/data/FORMATIONS.DAT` | URINS01 の入力 fixture | 維持 | — | 内容は変更しない。`batch/cobol/` を削除する場合は配置先の移動のみ (s2.1 / s5.2 で決定) |
 | A4 | `batch/cobol/expected/INSPDUE.DAT` | URINS01 の出力 (正解) | 維持 | — | Java 版のバイト一致の正解。A3 と同じく配置先の移動のみありうる |
 | A5 | `batch/cobol/work/` (生成物 `urins01`, 入出力のコピー) | `run.sh` の作業ディレクトリ。git 管理外 | 削除 | s5.2 | Java 版の作業ディレクトリに置き換わる |
@@ -344,8 +345,8 @@ COBOL バッチ URINS01 に依存している箇所の一覧。移行方針 (COB
 | C4 | `src/main/java/jp/usagi/railway/api/BatchApiController.java` L44-47 `GET /api/batch/formations-file` (Javadoc `URINS01 入力 FORMATIONS.DAT`) | JP1 ジョブ (L18 Javadoc) が URINS01 の入力を DB から取得する口 | 維持 | — | Java 版バッチも `FORMATIONS.DAT` を入力とするため、そのまま使う |
 | C5 | `BatchApiController.java` L50-53 `GET /api/batch/inspection-due` (Javadoc `INSPDUE.DAT 相当`) | DB から INSPDUE.DAT 形式を返す | 維持 | — | C1 の `formatRecord` 変更の影響のみ受ける |
 | C6 | `src/main/java/jp/usagi/railway/config/SecurityConfig.java` L34 `/api/batch/**` は ADMIN のみ | C4 / C5 の認可 | 維持 | — | |
-| C7 | `src/main/webapp/WEB-INF/jsp/rolling/inspections.jsp` L24 `COBOL バッチ URINS01 と同一形式 (INSPDUE.DAT)` | 画面表記 | 変更 | s5.3 | 例: 「検査期限バッチ URINS01 と同一形式」。`fileLines` は `inspectionDueFile()` (C1) |
-| C8 | `docs/images/inspections.png` | 上記 C7 の表記を含む画面のスクリーンショット (README から参照)。画像内の文字のため grep では検出されない | 変更 | s5.3 | C7 の変更後に撮り直す |
+| C7 | `src/main/webapp/WEB-INF/jsp/rolling/inspections.jsp` L24 `COBOL バッチ URINS01 と同一形式 (INSPDUE.DAT)` | 画面表記 | 変更 | s5.3 | 例: 「検査期限バッチ URINS01 と同一形式」。`fileLines` は `inspectionDueFile()` (C1)。**対応済み** (s5.3): 「検査期限バッチ URINS01 と同一形式 (INSPDUE.DAT)」 |
+| C8 | `docs/images/inspections.png` | 上記 C7 の表記を含む画面のスクリーンショット (README から参照)。画像内の文字のため grep では検出されない | 変更 | s5.3 | C7 の変更後に撮り直す。**対応済み** (s5.3) |
 | C9 | `RollingStockController` (`/rolling/inspections`, 編成一覧・詳細), `DashboardController` (検査期限 注意・超過), `RollingStockApiController` / `FormationDto` (`GET /api/formations`), `formation.jsp`, `dashboard.jsp` | `InspectionService.calculate` / `listAll` / `inspectionDueFile` を使う間接依存。COBOL には依存しない | 維持 | — | s3.1 で `calculate` (static / インスタンス) のシグネチャと結果を変えない限り影響なし |
 | C10 | `src/main/resources/application.properties` L74 `urms.inspection.warn-days=14` | Web 側の注意日数 (COBOL は定数 14) | 維持 | s2.1 | G14。バッチ側で 14 固定にするか同プロパティを読むかは s2.1 で決定。値は変えない |
 
@@ -366,8 +367,8 @@ COBOL バッチ URINS01 に依存している箇所の一覧。移行方針 (COB
 |---|---|---|---|---|---|
 | E1 | `demo/reset.sh` L34 `rm -rf batch/c/work batch/cobol/work target` | COBOL の作業ディレクトリを削除 | 変更 | s5.2 | Java 版の作業ディレクトリに合わせる (`batch/c/work`, `target` は維持)。リセット先のタグ `demo/0-legacy` は COBOL を含む状態のまま維持 |
 | E2 | `.gitignore` L17-18 `# COBOL batch work dir` / `batch/cobol/work/` | A5 の除外 | 変更 | s5.2 | Java 版の作業ディレクトリに置き換え。`batch/c/work/` は維持 |
-| E3 | `README.md` L3 (夜間バッチは C と COBOL), L5 (GnuCOBOL の夜間バッチ), L15 (検査期限 (COBOL バッチと同一形式)), L35 (`URINS01` と同一形式の `INSPDUE.DAT`), L41 (GnuCOBOL `cobc` が必要), L72 (`batch/cobol/run.sh`), L78 (`CobolParityTest` の説明), L86 (golden は `batch/*/data`・`expected` のコピー), L104 (`batch/cobol/URINS01.cbl` 1997 年製), L116 (移行テーマ「3. COBOL バッチ → Java」) | COBOL 前提の記述 | 変更 | s5.3 | L37 (`/api/batch/formations-file`, `/inspection-due`)・L92 (Jenkinsfile の「バッチサーバへ配布」) は維持 |
-| E4 | `.agents/skills/urms-testing/SKILL.md` L3 (C/COBOL batches), L12 (`batch/cobol/run.sh` (cobc)), L34 (C / COBOL batch と同一形式) | テスト手順の COBOL 前提 | 変更 | s5.3 | RC=4 が正常という記述は Java 版でも同じ (RC 互換のため) |
+| E3 | `README.md` L3 (夜間バッチは C と COBOL), L5 (GnuCOBOL の夜間バッチ), L15 (検査期限 (COBOL バッチと同一形式)), L35 (`URINS01` と同一形式の `INSPDUE.DAT`), L41 (GnuCOBOL `cobc` が必要), L72 (`batch/cobol/run.sh`), L78 (`CobolParityTest` の説明), L86 (golden は `batch/*/data`・`expected` のコピー), L104 (`batch/cobol/URINS01.cbl` 1997 年製), L116 (移行テーマ「3. COBOL バッチ → Java」) | COBOL 前提の記述 | 変更 | s5.3 | L37 (`/api/batch/formations-file`, `/inspection-due`)・L92 (Jenkinsfile の「バッチサーバへ配布」) は維持。**対応済み** (s5.3): 残る記述は §9.9 |
+| E4 | `.agents/skills/urms-testing/SKILL.md` L3 (C/COBOL batches), L12 (`batch/cobol/run.sh` (cobc)), L34 (C / COBOL batch と同一形式) | テスト手順の COBOL 前提 | 変更 | s5.3 | RC=4 が正常という記述は Java 版でも同じ (RC 互換のため)。**対応済み** (s5.3): `batch/c/run.sh` と `batch/java/run.sh` に変更 |
 | E5 | `docs/DEMO.md` L5, L20, L30, L44, L49-54, L87-99, L124, L134 | デモ台本。`demo/0-legacy` (COBOL あり) を出発点に「C / COBOL を Java 化する」こと自体が題材 | 維持 | — | 台本は移行前の状態を前提にしているため書き換えない |
 | E6 | `docs/batch/URINS01.md` (本書) §8 の `run.sh` / Jenkinsfile の記述 | COBOL 版の記録 | 維持 | — | COBOL 版の仕様 (契約) として残す。Java 版の起動方法は s2.1 / s3.2 で追記 |
 
@@ -379,7 +380,7 @@ COBOL バッチ URINS01 に依存している箇所の一覧。移行方針 (COB
 | F2 | 検修計画システム (`INSPDUE.DAT` の連携先, `URINS01.cbl` L12) | 出力ファイルの受け手 | 維持 | — | バイト一致で移行するため影響なし |
 | F3 | バッチサーバ `urms-bat-stg01` (と本番) の実行環境 | 現状は GnuCOBOL ランタイムで `urins01` を実行 | 変更 | s2.1 / s5.1 | Java 版の実行には JRE 8 が必要。サーバに JRE があるかはリポジトリから判断できない (要確認) |
 | F4 | Jenkins エージェント `rhel7-jdk8-cobol` | GnuCOBOL 2.2 をプリインストール (B1, B2) | 変更 | s5.1 | COBOL 削除後は不要。gcc (C URPWD01) と JDK 8 は引き続き必要 |
-| F5 | Devin 環境 (blueprint): `gnucobol3` パッケージ (`/usr/bin/cobc`, 3.1.2.0) | `batch/cobol/run.sh` の実行・境界値ゴールデンの作成 | 維持 | s4.1 | s4.1 / s4.2 でゴールデン作成・照合に必要。COBOL 削除 (s5.2) 後に外すかは任意 |
+| F5 | Devin 環境 (blueprint): `gnucobol3` パッケージ (`/usr/bin/cobc`, 3.1.2.0) | `batch/cobol/run.sh` の実行・境界値ゴールデンの作成 | 維持 | s4.1 | s4.1 / s4.2 でゴールデン作成・照合に必要。s5.2 で `batch/cobol/` を削除したためリポジトリ内に `cobc` の利用箇所は無い。blueprint からの削除と、blueprint の test 手順 (`batch/cobol/run.sh`・33 件) の `batch/java/run.sh`・66 件への更新は環境管理者が判断 (リポジトリ外) |
 | F6 | ブランチ `customer/kame-dentetsu`, `customer/kitsune-kotsu` | 統合ブランチと同じ COBOL 関連ファイルを持つ (`batch/cobol/`, `InspectionService.java`, `Jenkinsfile` の差分なしを確認) | 維持 | — | 本移行 (`migration/cobol-to-java` → `main`) の範囲外。納入先別の版へは別途取り込みが必要 |
 | F7 | タグ `demo/0-legacy` | COBOL を含む初期状態。`demo/reset.sh` の既定のリセット先 | 維持 | — | デモの出発点のため変更しない |
 
@@ -414,6 +415,20 @@ $ grep -rIil "cobol\|urins01\|inspdue" --exclude-dir=.git --exclude-dir=target -
 ```
 
 上記 grep にかからない依存は、ファイル名・API・メソッド名 (`FORMATIONS.DAT`, `formations-file`, `inspection-due`, `processFormationsFile`, `inspectionDueFile`, `InspectionService`) の grep と、画像・リポジトリ外の参照の確認で追加した (A3-A5, B6, C6, C8-C10, D2-D6, F1-F7)。
+
+### 9.9 対応結果 (s5.3 時点の残存箇所)
+
+s5.3 完了時点で `git grep -n -i "cobol\|cobc"` にかかる行はすべて次のいずれかで、「維持」とする。
+
+| 箇所 | 維持の理由 |
+|---|---|
+| `Jenkinsfile` L5 `agent { label 'rhel7-jdk8-cobol' }` | B1 / F4。C URPWD01 の gcc が必要なため据え置き。ラベルの付け替えは CI 管理者 (リポジトリ外) が判断 |
+| `README.md` L78, L80 (`CobolParityTest` / `Urins01BoundaryParityTest` の説明), L88 (golden の説明), L118 (モダナイゼーションのトラック 3) | テストクラス名 `CobolParityTest`・ゴールデン `INSPDUE_COBOL.DAT` が旧 COBOL 版の出力を正解とする契約であること、トラック 3 が移行済みであることを示す履歴 |
+| `docs/DEMO.md` L5, L20, L30, L44, L49, L87, L90-91, L94, L124, L134 | E5。`demo/0-legacy` (COBOL あり) を出発点とするデモ台本。「C / COBOL を Java 化する」こと自体が題材のため書き換えない |
+| `docs/batch/URINS01.md` (本書) | COBOL 版の挙動を記録した仕様書 (契約)。COBOL ソースへの参照は §冒頭・§8 で `745a86d` の履歴参照にした。§9 の表は `a9cf0f8` 時点の棚卸しの記録 |
+| `InspectionService.java` L20 / `CobolParityTest.java` L11, L13 | C2 / D1。「旧 COBOL バッチ URINS01 (Git 履歴)」として履歴を指す (s5.2 で差し替え済み) |
+| `CobolParityTest.java` L16, L19, L20 / `Urins01BatchTest.java` L42, L171 / `Urins01BoundaryParityTest.java` L27-28, L142, L150 | 契約テストのクラス名・メソッド名・ゴールデン名。比較先が COBOL 出力であることを表す名前のため変えない |
+| `src/test/resources/golden/boundary/cases.tsv` L1, L3-5 | ゴールデン配下は凍結 (データ行の説明文を含む) |
 
 ---
 

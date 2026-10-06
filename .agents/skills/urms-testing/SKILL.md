@@ -1,6 +1,6 @@
 ---
 name: testing-usagi-railway
-description: Run and browser-test the Usagi Railway URMS legacy Java 8 JSP app (power management + rolling-stock maintenance), its C/COBOL batches, seeded state, confirmations and role boundaries.
+description: Run and browser-test the Usagi Railway URMS legacy Java 8 JSP app (power management + rolling-stock maintenance), its C / Java batches, seeded state, confirmations and role boundaries.
 ---
 
 # Environment
@@ -9,7 +9,7 @@ description: Run and browser-test the Usagi Railway URMS legacy Java 8 JSP app (
 - Wait for `Started UsagiRailwayApplication` and use `http://localhost:8080/urms/login`.
 - H2 is in-memory: every restart resets the seed (operation date 2026/10/05, 5 substations, 6 formations, 4 failures, 2 repair orders). `demo/reset.sh` also resets git state and batch work dirs.
 - The app pins JVM / Joda default time zone to Asia/Tokyo in `UsagiRailwayApplication`. If dates are off by one day, that pin was lost.
-- Batches: `batch/c/run.sh` (gcc) and `batch/cobol/run.sh` (cobc). RC=4 is expected for the fixtures (missing telemetry / inspection warnings); RC>=8 is a failure.
+- Batches: `batch/c/run.sh` (URPWD01, gcc) and `batch/java/run.sh` (URINS01, Java; uses the newest `target/usagi-railway*.war` and rebuilds it with Maven if missing or older than `src/main` / `pom.xml`, so set `JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64`). Both print `GOLDEN OK` on a match. RC=4 is expected for the fixtures (missing telemetry / inspection warnings); RC>=8 is a failure.
 - Ensure a Japanese font is installed before launching the browser (`fc-list :lang=ja`).
 
 # Devin Secrets Needed
@@ -31,7 +31,7 @@ None. Demo logins (in-memory, public fixtures): `shirei/shirei123` (DISPATCHER),
 - Failure form: the serial number field normalizes full-width input and looks up the mount position via `/api/equipment/{serial}` on change.
 - Assert normalized input and lookup result independently: successful blur normalization alone does not prove that the lookup request used the normalized serial.
 - 警報一覧 auto-reloads every 60 s; finish interactions quickly or reopen the page.
-- 電力日報 and 検査期限 show the same fixed-length file the C / COBOL batch produces; compare with `batch/*/expected/`.
+- 電力日報 and 検査期限 show the same fixed-length file the C URPWD01 / Java URINS01 batch produces; compare with `batch/c/expected/` / `batch/java/expected/`.
 - In a long running instance, record IDs may already exceed the seed's next values. Reuse the IDs actually created by your browser flow rather than restarting solely to recover expected numbering.
 
 # Japanese input and recording

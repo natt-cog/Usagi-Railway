@@ -1,8 +1,8 @@
 # うさぎ鉄道 電力・車両保守システム (URMS)
 
-**うさぎ鉄道 (架空の鉄道事業者) の電力管理・車両保守システムです。** 電力指令所と検修庫で使う社内 Web アプリで、変電所・き電区分所の遮断器状態と計測値の監視、警報の確認、停電作業 (き電停止) の申請から承認・復電までを扱います。車両側では編成・車両・搭載機器を製造番号で管理し、故障記録、メーカーへの修理依頼と進捗、交番・重要部・全般検査の期限を管理します。夜間バッチは C (電力日報) と COBOL (検査期限) で書かれています。
+**うさぎ鉄道 (架空の鉄道事業者) の電力管理・車両保守システムです。** 電力指令所と検修庫で使う社内 Web アプリで、変電所・き電区分所の遮断器状態と計測値の監視、警報の確認、停電作業 (き電停止) の申請から承認・復電までを扱います。車両側では編成・車両・搭載機器を製造番号で管理し、故障記録、メーカーへの修理依頼と進捗、交番・重要部・全般検査の期限を管理します。夜間バッチは C (電力日報) と Java (検査期限) で書かれています。
 
-移行・モダナイゼーションのデモ対象として、あえて*レガシー*な構成にしています: **Spring Boot 1.5.22 / Java 8 / JSP + jQuery 1.12 / JUnit 4 / H2 上の Oracle 方言 SQL / Flyway 4 / Ehcache 2 / Joda-Time / C (gcc) と GnuCOBOL の夜間バッチ / Jenkinsfile (WebSphere デプロイ)**。
+移行・モダナイゼーションのデモ対象として、あえて*レガシー*な構成にしています: **Spring Boot 1.5.22 / Java 8 / JSP + jQuery 1.12 / JUnit 4 / H2 上の Oracle 方言 SQL / Flyway 4 / Ehcache 2 / Joda-Time / C (gcc) の夜間バッチ / Jenkinsfile (WebSphere デプロイ)**。
 
 > 架空のシステムです。三菱電機を含む実在企業のシステムやデータを再現したものではありません。
 
@@ -12,7 +12,7 @@
 |---|---|---|
 | ![ダッシュボード](docs/images/dashboard.png) | ![変電所](docs/images/substation-detail.png) | ![警報一覧](docs/images/alarms.png) |
 
-| 電力日報 (C バッチと同一形式) | 検査期限 (COBOL バッチと同一形式) | 編成 (休車・検査超過) |
+| 電力日報 (C バッチと同一形式) | 検査期限 (検査期限バッチと同一形式) | 編成 (休車・検査超過) |
 |---|---|---|
 | ![電力日報](docs/images/daily-report.png) | ![検査期限](docs/images/inspections.png) | ![編成](docs/images/formation-detail.png) |
 
@@ -32,13 +32,13 @@
 | | 計測伝文受信 | `POST /api/telemetry` (RTU, 固定長 H/D/T, トレーラ件数照合, 閾値判定で警報発生) |
 | 車両保守 | 編成・機器 | 編成・車両・搭載機器 (VVVF, SIV, 主電動機, ブレーキ制御, 空調…), 製造番号でのライフサイクル追跡, 予備品 |
 | | 故障・修理 | 故障登録 (製造番号から搭載位置を自動特定, 重要度 A は自動で休車), 調査, メーカー修理依頼, メーカーによる進捗更新, 完了 |
-| | 検査期限 | 交番 (90 日), 重要部 (4 年 or 60 万 km), 全般 (8 年). 残 14 日以内 / 57 万 km 以上で注意. COBOL バッチ `URINS01` と同一形式の `INSPDUE.DAT` |
+| | 検査期限 | 交番 (90 日), 重要部 (4 年 or 60 万 km), 全般 (8 年). 残 14 日以内 / 57 万 km 以上で注意. 検査期限バッチ `URINS01` (`batch/java/`) と同一形式の `INSPDUE.DAT` |
 
 REST API (`/urms/api/**`, HTTP Basic): `GET /api/substations`, `GET /api/substations/{code}`, `GET /api/alarms?unacked=true`, `POST /api/telemetry`, `GET /api/formations`, `GET /api/formations/{no}`, `GET /api/equipment/{serial}`, `GET|POST /api/failures`。管理者のみ: `GET /api/batch/daily-report?date=yyyyMMdd`, `GET /api/batch/formations-file`, `GET /api/batch/inspection-due`。
 
 ## 起動方法
 
-必要なもの: JDK 8、Maven 3.x (バッチを動かす場合は gcc と GnuCOBOL `cobc`)。
+必要なもの: JDK 8、Maven 3.x (C バッチを動かす場合は gcc)。
 
 ```bash
 JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 mvn spring-boot:run
@@ -67,16 +67,17 @@ curl -u admin:admin123 "http://localhost:8080/urms/api/batch/daily-report?date=2
 ## テスト
 
 ```bash
-JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 mvn test   # 33 件 (JUnit 4, SpringRunner, H2 Oracle モード)
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 mvn test   # 66 件 (JUnit 4, SpringRunner, H2 Oracle モード)
 batch/c/run.sh                                           # URPWD01 をビルド・実行し expected/DAILY_20261005.DAT と比較
-batch/cobol/run.sh                                       # URINS01 をビルド・実行し expected/INSPDUE.DAT と比較
 batch/java/run.sh                                        # URINS01 Java 版を WAR から起動し expected/INSPDUE.DAT と比較
 ```
 
 | テスト | 検証内容 |
 |---|---|
 | `CBatchParityTest` | Java の電力日報集計と C `URPWD01` の出力が 1 バイト単位で一致すること |
-| `CobolParityTest` | Java の検査期限算出と COBOL `URINS01` の出力が 1 バイト単位で一致すること |
+| `CobolParityTest` | Java の検査期限算出と旧 COBOL 版 `URINS01` の出力 (`golden/INSPDUE_COBOL.DAT`) が 1 バイト単位で一致すること |
+| `Urins01BatchTest` | Java 版 `URINS01` (`Urins01Batch`) のファイル入出力, RC (0/4/8/12), コンソールメッセージ |
+| `Urins01BoundaryParityTest` | 境界値 19 ケース (`golden/boundary/`) で Java 版 `URINS01` の RC・出力ファイル・標準出力が旧 COBOL 版と一致すること |
 | `InspectionServiceTest` | 検査周期, 注意・超過判定, 走行 km, うるう日 (2100/02/28) |
 | `TelemetryFileTest` | 固定長伝文 (H/D/T) の解析, トレーラ件数照合 |
 | `OutageServiceIT` | 停電作業の状態遷移, 遮断器の切/入, 重複申請, トリップ中の操作禁止 |
@@ -84,7 +85,7 @@ batch/java/run.sh                                        # URINS01 Java 版を W
 | `UrmsApiIT` | API の認証・ロール別認可, 計測伝文の受信と警報発生, エラーコード (`UR-xxxx`) |
 | `WebSecurityIT` | 画面フォーム POST のサーバ側ロール制御 (指令 / 検修 / メーカー), CSRF |
 
-ゴールデンファイル (`src/test/resources/golden/`) は `batch/*/data` と `batch/*/expected` のコピーです。バッチ側を変えたら両方を更新してください。
+ゴールデンファイル (`src/test/resources/golden/`) のうち電力日報は `batch/c/data` と `batch/c/expected` のコピーです。C バッチ側を変えたら両方を更新してください。検査期限 (`FORMATIONS.DAT`, `INSPDUE_COBOL.DAT`, `boundary/`) は退役前の COBOL 版 `URINS01` の出力を記録した移行の契約なので変更しないでください (`batch/java/data`・`batch/java/expected` も同じ内容です)。
 
 ## リポジトリ構成
 
@@ -102,8 +103,7 @@ src/main/java/jp/usagi/railway/
 src/main/resources/db/migration  Flyway 4: V1 スキーマ (Oracle DDL 方言), V2 初期データ
 src/main/webapp/WEB-INF/jsp      JSP/JSTL 画面 (日本語 UI) + jQuery 1.12.4
 batch/c/urpwd01.c                C 電力日報バッチ (2004 年製), data/, expected/, run.sh
-batch/cobol/URINS01.cbl          COBOL 検査期限算出バッチ (1997 年製), data/, expected/, run.sh
-batch/java/run.sh                Java 版 URINS01 起動スクリプト (WAR)
+batch/java/urins01               Java 版 URINS01 検査期限算出バッチの起動ラッパー (WAR 内の Urins01Batch), data/, expected/, run.sh
 demo/reset.sh                    デモ環境リセット
 docs/DEMO.md                     デモ台本
 docs/images/                     README 用スクリーンショット / GIF
@@ -115,7 +115,7 @@ docs/images/                     README 用スクリーンショット / GIF
 |---|---|
 | 1. Spring Boot 1.5 / Java 8 → 3.x / 21 | `javax.*` → `jakarta.*`, `WebSecurityConfigurerAdapter`, `antMatchers`, `findOne`, `new PageRequest`, `org.hibernate.validator.constraints.NotBlank`, Flyway 4 / H2 1.4 / Ehcache 2, `server.context-path` などの旧プロパティ, JUnit 4, Joda-Time |
 | 2. C バッチ → Java | `batch/c/urpwd01.c` ⇔ `DailyReportService`. `CBatchParityTest` が契約 |
-| 3. COBOL バッチ → Java | `batch/cobol/URINS01.cbl` ⇔ `InspectionService`. `CobolParityTest` が契約 |
+| 3. COBOL バッチ → Java (移行済み) | 旧 COBOL 版 `URINS01.cbl` (コミット `745a86d` まで) → `Urins01Batch` + `InspectionService`. 仕様は [docs/batch/URINS01.md](docs/batch/URINS01.md), `CobolParityTest` / `Urins01BoundaryParityTest` が契約 |
 | 4. JSP / jQuery → React / TypeScript | JSP 17 枚. 同じ操作は REST API でも提供済み. jQuery の挙動 (全角正規化, 製造番号照会, 確認ダイアログ, ソート, 自動更新) は `static/js/urms.js` |
 | 5. Oracle → PostgreSQL | `VARCHAR2`, `NUMBER`, シーケンス (`SEQ_*.NEXTVAL`), `ROWNUM` を使ったネイティブ SQL, H2 `MODE=Oracle` |
 | 6. Jenkins → GitHub Actions | `Jenkinsfile` (WebSphere `wsadmin`, Nexus, SonarQube 5.6, バッチ配布) |
