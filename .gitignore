@@ -17,6 +17,7 @@ target/
 # COBOL batch work dir
 batch/cobol/work/
 batch/c/work/
+batch/java/work/
 
 # OS
 .DS_Store

@@ -1,0 +1,10 @@
+#!/bin/sh
+# /opt/urms/bin/urins01 のテンプレート (配置は s5.1)。
+URMS_HOME=${URMS_HOME:-/opt/urms}
+URMS_WAR=${URMS_WAR:-$URMS_HOME/lib/usagi-railway.war}
+JAVA=${URMS_JAVA:-java}
+exec "$JAVA" \
+  -Dloader.main=jp.usagi.railway.batch.Urins01Batch \
+  -Dloader.path=WEB-INF/classes,WEB-INF/lib \
+  -cp "$URMS_WAR" \
+  org.springframework.boot.loader.PropertiesLauncher "$@"

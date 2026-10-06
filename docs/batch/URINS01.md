@@ -297,6 +297,7 @@ COBOL 版は入力の妥当性チェックをほとんど行わない。以下�
 ## 8. 実行環境メモ
 
 - `run.sh [入力] [期待出力 | -]` は `cobc -x -o work/urins01 URINS01.cbl` でビルドし、`work/` に入力をコピーして実行。期待出力 (既定 `expected/INSPDUE.DAT`, `-` で比較なし) と `diff` で比較する。入力ファイルが存在しない場合はコピーせずに実行し、COBOL 自身が RC=12 を返す。実行結果は `work/RC.TXT` / `work/SYSOUT.TXT` / `work/SYSERR.TXT` にも保存される。
+- `batch/java/run.sh [FORMATIONS.DAT へのパス] [期待する INSPDUE.DAT のパス | -]` は同じインターフェースで Java 版を実行し、`batch/java/work/` に結果を保存する。`URMS_WAR` 未指定時は最新の WAR を使い、無い場合または `src/main` / `pom.xml` が WAR より新しい場合は Maven で自動ビルドする。`URMS_WAR` 指定時はビルドを省略し、Java は `URMS_JAVA`、未指定なら `JAVA_HOME/bin/java` (JAVA_HOME も未指定なら `java`) を使う。起動は `batch/java/urins01` ラッパー経由。
 - `gen-boundary.sh` は付録 B の境界値ゴールデンデータを `run.sh` 経由で再生成する。
 - バージョン表記の不一致: Jenkinsfile のコメントは GnuCOBOL 2.2、`run.sh` のコメントは 3.x、本書の実測環境は GnuCOBOL 3.1.2.0。
 - Jenkinsfile: `Batch Golden Test` ステージで `batch/cobol/run.sh` を実行、`work/urins01` をアーカイブし、ステージングの `jp1adm@urms-bat-stg01:/opt/urms/bin/` に scp。
@@ -572,6 +573,7 @@ exec "$JAVA" \
 ```
 
 - `exec` で java に置き換わるため、RC 0/4/8/12 がそのまま JP1 に返る。JP1 側の RC 判定 (0/4 正常, 8/12 異常) は変更不要。
+- ラッパーのリポジトリ内テンプレートは `batch/java/urins01`。`batch/java/run.sh` も同じラッパーを使い、`URMS_WAR` を指定できるようにしている。実配布先への配置は s5.1 で行う。
 - カレントディレクトリは変えない。JP1 ジョブの作業ディレクトリにある `FORMATIONS.DAT` を読み `INSPDUE.DAT` を書く動作は COBOL と同じ。
 - 配置: `/opt/urms/bin/urins01` (ラッパー、実行権限付き)、`/opt/urms/lib/usagi-railway.war` (Jenkins の `Package WAR` の成果物と同一の WAR)。
 - ラッパーが日本語を出さないので、ラッパー自体の文字コード設定は不要 (メッセージの UTF-8 化は Java 側で行う)。
@@ -594,7 +596,7 @@ Jenkins は `-Dtest=*Test` / `*IT` に一致するクラスだけを実行する
 | `jp.usagi.railway.batch.Urins01BoundaryParityTest` | `cases.tsv` の 19 ケースを一時ディレクトリで `run` に通す。mode=golden: `INSPDUE.DAT` (有無を含む)・RC・標準出力を `INSPDUE.DAT` / `RC` / `STDOUT.txt` とバイト比較。mode=error: RC=12、標準出力の最終行が `URINS01 E:` で始まる、`INSPDUE.DAT` が存在しない |
 | `CobolParityTest` / `UrmsApiIT` (既存) | `formatHeader` / `formatTrailer` 抽出後も無変更で通ること (画面・API 出力の不変確認) |
 
-起動コマンド自体 (WAR + `PropertiesLauncher` + RC の受け渡し) は、Java 版の実行スクリプト (s4 以降で `batch/cobol/run.sh` 相当を作る) で実際に WAR を起動して確認する。
+起動コマンド自体 (WAR + `PropertiesLauncher` + RC の受け渡し) は、Java 版の実行スクリプト `batch/java/run.sh` で実際に WAR を起動して確認する。
 
 ### 10.9 起動コマンドの検証結果 (設計時の最小検証)
 
@@ -613,6 +615,18 @@ Jenkins は `-Dtest=*Test` / `*IT` に一致するクラスだけを実行する
 | Java 17 | b と同じコマンドを OpenJDK 17.0.19 で実行 | RC=0 (将来の Java 移行で起動方式がそのまま使える) |
 
 使用 JDK: OpenJDK 1.8.0_504 (`/usr/lib/jvm/java-8-openjdk-amd64`)。Spring Boot 1.5.22.RELEASE。
+
+### 10.10 実行スクリプトの検証結果 (s3.2)
+
+| 検証 | 結果 |
+|---|---|
+| 構文・既定 fixture | `sh -n` 成功。WAR の無い状態から初回起動でビルドし、RC=4 / `GOLDEN OK` (14.677 秒) |
+| 再実行 | RC=4 / `GOLDEN OK`。0.199 秒、WAR の更新時刻不変 (再ビルドなし) |
+| 境界値 19 ケース | mode=golden 14 ケースは RC・`INSPDUE.DAT`・`SYSOUT.TXT` が全件一致。mode=error 5 ケースは Java RC=12、出力なし、最終行 `URINS01 E:` |
+| 起動インターフェース | 相対入力パス成功。`/nonexistent` は RC=12 / 終了コード 12。誤った期待ファイルは `GOLDEN MISMATCH` / 終了コード 1。`URMS_WAR` 指定時は再ビルドなし |
+| COBOL 既定 fixture | RC=4 / `GOLDEN OK`。Java と `INSPDUE.DAT`・`SYSOUT.TXT` が一致 |
+
+境界値ケースは各ケースの `FORMATIONS.DAT` を `batch/cobol/run.sh <入力> -` と `batch/java/run.sh <入力> -` に与え、`work/RC.TXT`・`work/SYSOUT.TXT`・`work/INSPDUE.DAT` (有無を含む) を比較した。
 
 ## 付録 A. 実測ケース (GnuCOBOL 3.1.2 / 既存 Java `processFormationsFile`)
 
