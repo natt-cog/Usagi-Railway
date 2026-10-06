@@ -1,0 +1,46 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title><c:out value="${pageTitle}" default="URMS" /> | うさぎ鉄道 電力・車両保守システム</title>
+<link rel="stylesheet" href="${ctx}/static/css/urms.css">
+<script src="${ctx}/static/js/jquery-1.12.4.min.js"></script>
+<script src="${ctx}/static/js/urms.js"></script>
+</head>
+<body<c:if test="${autoRefresh}"> data-autorefresh="1"</c:if>>
+<div id="header">
+  <div class="brand"><a href="${ctx}/dashboard">うさぎ鉄道 電力・車両保守システム</a><span class="env">【検証環境】 運用日 <c:out value="${operationDate}" /></span></div>
+  <div class="user">
+    <sec:authorize access="isAuthenticated()">
+      <sec:authentication property="name" />
+      (<sec:authentication property="authorities" />)
+      <form action="${ctx}/logout" method="post" class="inline">
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+        <button type="submit" class="link">ログアウト</button>
+      </form>
+    </sec:authorize>
+  </div>
+</div>
+<div id="nav">
+  <a href="${ctx}/dashboard">ダッシュボード</a>
+  <sec:authorize access="hasAnyRole('DISPATCHER','MAINTAINER','ADMIN')">
+  <a href="${ctx}/power/substations">変電所</a>
+  <a href="${ctx}/power/alarms">警報一覧</a>
+  <a href="${ctx}/power/outages">停電作業</a>
+  <a href="${ctx}/power/daily">電力日報</a>
+  </sec:authorize>
+  <a href="${ctx}/rolling/formations">編成・機器</a>
+  <a href="${ctx}/rolling/inspections">検査期限</a>
+  <a href="${ctx}/rolling/failures">故障・修理</a>
+  <sec:authorize access="hasRole('ADMIN')"><a href="${ctx}/h2-console" target="_blank">DBコンソール</a></sec:authorize>
+</div>
+<div id="content">
+<c:if test="${not empty message}"><div class="flash ok"><c:out value="${message}" /></div></c:if>
+<c:if test="${not empty error}"><div class="flash ng"><c:out value="${error}" /></div></c:if>

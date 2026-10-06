@@ -1,0 +1,5 @@
+<%@ page pageEncoding="UTF-8" %>
+</div>
+<div id="footer">&copy; 2009-2019 うさぎ電機システムズ株式会社 交通システム部 / URMS v<c:out value="${appVersion}" default="3.4" /> / Tomcat 8.5 / Java 8</div>
+</body>
+</html>

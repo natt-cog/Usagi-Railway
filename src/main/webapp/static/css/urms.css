@@ -1,0 +1,71 @@
+/* うさぎ鉄道 電力・車両保守システム (URMS) - 指令所端末用スタイル (IE8/9 互換) */
+body { margin: 0; font-family: "MS PGothic", "Meiryo", "Hiragino Kaku Gothic ProN", sans-serif; font-size: 13px; color: #222; background: #eef1f5; }
+a { color: #1d5e3a; }
+#header { background: #1d5e3a; color: #fff; padding: 8px 16px; overflow: hidden; }
+#header .brand { float: left; font-size: 18px; font-weight: bold; }
+#header .brand a { color: #fff; text-decoration: none; }
+#header .brand .env { font-size: 12px; color: #ffd966; margin-left: 12px; }
+#header .user { float: right; padding-top: 3px; }
+#header form.inline { display: inline; }
+button.link { background: none; border: none; color: #ffd966; text-decoration: underline; cursor: pointer; font-size: 13px; }
+#nav { background: #d9e2ec; padding: 6px 16px; border-bottom: 1px solid #b0bec9; }
+#nav a { margin-right: 18px; font-weight: bold; text-decoration: none; }
+#content { padding: 16px; }
+#footer { color: #777; font-size: 11px; text-align: center; padding: 16px; }
+h1 { font-size: 20px; margin: 0 0 12px; border-left: 6px solid #1d5e3a; padding-left: 10px; }
+h1 small, h2 small { font-size: 12px; color: #666; font-weight: normal; margin-left: 8px; }
+h2 { font-size: 15px; margin: 0 0 8px; }
+.row { overflow: hidden; }
+.panel { background: #fff; border: 1px solid #c5ced8; padding: 12px; margin-bottom: 14px; }
+.panel.half { float: left; width: 47%; margin-right: 1.5%; box-sizing: border-box; }
+table.grid { width: 100%; border-collapse: collapse; }
+table.grid th, table.grid td { border: 1px solid #c5ced8; padding: 4px 8px; }
+table.grid th { background: #e8eef4; text-align: left; cursor: pointer; }
+table.grid tr:nth-child(even) td { background: #f7f9fb; }
+table.grid td.empty { text-align: center; color: #888; }
+.num { text-align: right; font-family: Consolas, "MS Gothic", monospace; }
+.big { font-size: 18px; font-weight: bold; }
+table.kv th { text-align: left; background: #e8eef4; padding: 4px 8px; width: 140px; border: 1px solid #c5ced8; }
+table.kv td { padding: 4px 8px; border: 1px solid #c5ced8; }
+.flash { padding: 8px 12px; margin-bottom: 12px; border: 1px solid; }
+.flash.ok { background: #e6f4ea; border-color: #7bbf8a; color: #1e6b32; }
+.flash.ng { background: #fbe9e7; border-color: #e57373; color: #b71c1c; }
+form.search label, .inline-form label { margin-right: 12px; }
+.inline-form { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dotted #ccc; }
+button, a.button { padding: 4px 14px; border: 1px solid #7a8a99; background: #f4f6f8; cursor: pointer; font-size: 13px; text-decoration: none; color: #222; }
+button.primary { background: #1d5e3a; border-color: #123f26; color: #fff; }
+button.warn { background: #c0392b; border-color: #962d22; color: #fff; }
+input[type=text], input[type=password], select { padding: 3px 5px; border: 1px solid #8ea0b3; font-size: 13px; }
+fieldset { border: 1px solid #c5ced8; margin-bottom: 10px; }
+legend { font-weight: bold; }
+.note { color: #666; font-size: 12px; }
+.req { color: #c0392b; font-size: 11px; margin-left: 4px; }
+.err { color: #b71c1c; font-size: 12px; }
+.pager { text-align: center; margin-top: 8px; }
+.pager a { margin: 0 8px; }
+ol.top li { margin-bottom: 4px; }
+body.login { background: #1d5e3a; }
+.login-box { width: 360px; margin: 80px auto; background: #fff; padding: 24px 32px; border: 1px solid #123f26; }
+.login-box h1 { border: none; padding: 0; text-align: center; }
+.login-box h1 small { display: block; font-size: 12px; color: #666; margin-top: 4px; }
+.login-box label { display: block; margin: 10px 0; }
+.login-box input { width: 100%; box-sizing: border-box; }
+.login-box button { width: 100%; margin-top: 8px; }
+.hint { font-size: 11px; color: #888; text-align: center; }
+/* 設備・警報の状態表示 */
+.lv-MAJOR { color: #fff; background: #c0392b; padding: 1px 6px; font-weight: bold; }
+.lv-MINOR { color: #fff; background: #e67e22; padding: 1px 6px; }
+.lv-NOTICE { color: #333; background: #f1c40f; padding: 1px 6px; }
+tr.unacked td { font-weight: bold; }
+.bk-CLOSED { color: #1e6b32; font-weight: bold; } .bk-OPEN { color: #555; } .bk-TRIPPED { color: #fff; background: #c0392b; padding: 1px 6px; font-weight: bold; }
+.judge-N { color: #1e6b32; } .judge-W { color: #fff; background: #e67e22; padding: 1px 6px; } .judge-X { color: #fff; background: #c0392b; padding: 1px 6px; font-weight: bold; }
+.st-REQUESTED, .st-OPEN { color: #b26a00; } .st-IN_PROGRESS, .st-REPAIR_REQUESTED, .st-REPAIRING { color: #c0392b; font-weight: bold; }
+.st-COMPLETED, .st-CLOSED, .st-RETURNED, .st-REPAIRED { color: #1e6b32; } .st-REJECTED { color: #999; }
+.fs-OUT_OF_SERVICE { color: #c0392b; font-weight: bold; } .fs-IN_DEPOT { color: #b26a00; }
+td.over { color: #c0392b; font-weight: bold; } tr.missing td { color: #999; }
+pre.file { background: #1b1b1b; color: #9fe39f; padding: 8px 12px; font-family: Consolas, "MS Gothic", monospace; font-size: 12px; overflow-x: auto; }
+.tiles { overflow: hidden; margin-bottom: 14px; }
+.tile { float: left; width: 18%; margin-right: 1.5%; background: #fff; border: 1px solid #c5ced8; padding: 10px; box-sizing: border-box; }
+.tile .big { display: block; font-size: 26px; }
+.tile.alert { border-color: #c0392b; background: #fbe9e7; }
+textarea { width: 100%; box-sizing: border-box; border: 1px solid #8ea0b3; font-size: 13px; }
