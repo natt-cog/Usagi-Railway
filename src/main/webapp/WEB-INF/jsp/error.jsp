@@ -3,6 +3,9 @@
 <c:set var="pageTitle" value="エラー" />
 <%@ include file="common/header.jspf" %>
 <h1>エラー (<c:out value="${status}" />)</h1>
-<p><c:out value="${message}" default="処理中にエラーが発生しました。" /></p>
+<c:choose>
+  <c:when test="${status == 403}"><p>この操作を行う権限がありません。</p></c:when>
+  <c:otherwise><p><c:out value="${message}" default="処理中にエラーが発生しました。" /></p></c:otherwise>
+</c:choose>
 <p><a href="${ctx}/dashboard">ダッシュボードへ戻る</a></p>
 <%@ include file="common/footer.jspf" %>
