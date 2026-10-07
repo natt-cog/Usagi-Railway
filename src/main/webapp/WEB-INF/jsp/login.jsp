@@ -5,10 +5,15 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>ログイン | うさぎ鉄道 電力・車両保守システム</title>
 <link rel="stylesheet" href="${ctx}/static/css/urms.css">
+<script src="${ctx}/static/js/jquery-1.12.4.min.js"></script>
+<script src="${ctx}/static/js/urms.js"></script>
 </head>
 <body class="login">
+<script>try{if(window.localStorage&&localStorage.getItem('urms-theme')==='dark'){document.body.className+=' dark';}}catch(e){}</script>
+<div class="theme-bar"><button type="button" id="theme-toggle">ダークモード</button></div>
 <div class="login-box">
   <h1>うさぎ鉄道<br><small>電力・車両保守システム (URMS) 端末ログイン</small></h1>
   <c:if test="${param.error != null}"><div class="flash ng">ユーザIDまたはパスワードが正しくありません</div></c:if>

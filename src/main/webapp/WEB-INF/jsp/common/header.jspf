@@ -15,6 +15,7 @@
 <script src="${ctx}/static/js/urms.js"></script>
 </head>
 <body<c:if test="${autoRefresh}"> data-autorefresh="1"</c:if>>
+<script>try{if(window.localStorage&&localStorage.getItem('urms-theme')==='dark'){document.body.className+=' dark';}}catch(e){}</script>
 <div id="header">
   <div class="brand"><a href="${ctx}/dashboard">うさぎ鉄道 電力・車両保守システム</a><span class="env">【検証環境】 運用日 <c:out value="${operationDate}" /></span></div>
   <div class="user">
@@ -26,6 +27,7 @@
         <button type="submit" class="link">ログアウト</button>
       </form>
     </sec:authorize>
+    <button type="button" id="theme-toggle">ダークモード</button>
   </div>
 </div>
 <div id="nav">

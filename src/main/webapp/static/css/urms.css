@@ -69,3 +69,38 @@ pre.file { background: #1b1b1b; color: #9fe39f; padding: 8px 12px; font-family: 
 .tile .big { display: block; font-size: 26px; }
 .tile.alert { border-color: #c0392b; background: #fbe9e7; }
 textarea { width: 100%; box-sizing: border-box; border: 1px solid #8ea0b3; font-size: 13px; }
+/* テーマ切替ボタン */
+#theme-toggle { margin-left: 10px; padding: 1px 8px; background: transparent; border: 1px solid #ffd966; color: #ffd966; font-size: 12px; cursor: pointer; }
+.theme-bar { text-align: right; padding: 8px 16px 0; }
+/* ダークテーマ (body.dark) */
+body.dark { color: #d8dee4; background: #1a1f24; }
+body.dark.login { background: #0f2418; }
+body.dark a { color: #7fd1a0; }
+body.dark #header { background: #123f26; }
+body.dark #header .brand a { color: #fff; }
+body.dark #nav { background: #252c33; border-bottom-color: #3a444e; }
+body.dark h1 { border-left-color: #3f9a63; }
+body.dark .login-box h1 { border: none; }
+body.dark h1 small, body.dark h2 small, body.dark .note, body.dark .login-box h1 small { color: #9aa5b0; }
+body.dark td.empty, body.dark table.grid td.empty, body.dark #footer, body.dark .hint { color: #8a949e; }
+body.dark .panel, body.dark .tile, body.dark .login-box { background: #222a31; border-color: #3a444e; }
+body.dark .tile.alert { background: #3d1f1f; border-color: #e57373; }
+body.dark table.grid th, body.dark table.grid td, body.dark table.kv th, body.dark table.kv td { border-color: #3a444e; }
+body.dark table.grid th, body.dark table.kv th { background: #2c353e; }
+body.dark table.grid tr:nth-child(even) td { background: #262e36; }
+body.dark fieldset { border-color: #3a444e; }
+body.dark .inline-form { border-bottom-color: #46505a; }
+body.dark .flash.ok { background: #1d3a26; border-color: #3f8a55; color: #a5e0b4; }
+body.dark .flash.ng { background: #3d1f1f; border-color: #b45454; color: #f4b0aa; }
+body.dark button, body.dark a.button { background: #2f3943; border-color: #56636f; color: #d8dee4; }
+body.dark button.primary { background: #2a7a4d; border-color: #1d5e3a; color: #fff; }
+body.dark button.warn { background: #c0392b; border-color: #962d22; color: #fff; }
+body.dark button.link { background: none; border: none; color: #ffd966; }
+body.dark input[type=text], body.dark input[type=password], body.dark select, body.dark textarea { background: #1e252b; border-color: #56636f; color: #d8dee4; }
+body.dark .req, body.dark .err { color: #ff8a80; }
+/* ダークテーマ: 文字色のみで表す状態の可読性調整 (背景色付きバッジは維持) */
+body.dark .bk-CLOSED, body.dark .judge-N, body.dark .st-COMPLETED, body.dark .st-CLOSED, body.dark .st-RETURNED, body.dark .st-REPAIRED { color: #6fcf8a; }
+body.dark .bk-OPEN { color: #a0a8b0; }
+body.dark .st-REQUESTED, body.dark .st-OPEN, body.dark .fs-IN_DEPOT { color: #f0a64a; }
+body.dark .st-IN_PROGRESS, body.dark .st-REPAIR_REQUESTED, body.dark .st-REPAIRING, body.dark .fs-OUT_OF_SERVICE, body.dark td.over { color: #ff7b6b; }
+body.dark .st-REJECTED, body.dark tr.missing td { color: #8a949e; }
