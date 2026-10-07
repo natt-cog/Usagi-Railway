@@ -2,6 +2,27 @@
 (function ($) {
     'use strict';
 
+    // ダークモード: localStorage に保存したテーマを全画面で復元し、#theme-toggle で切替
+    var THEME_KEY = 'urms-theme';
+    function loadTheme() {
+        try { return window.localStorage ? window.localStorage.getItem(THEME_KEY) : null; } catch (e) { return null; }
+    }
+    function saveTheme(theme) {
+        try { if (window.localStorage) { window.localStorage.setItem(THEME_KEY, theme); } } catch (e) { /* 保存不可の環境では無視 */ }
+    }
+    function applyTheme(dark) {
+        $('body').toggleClass('dark', dark);
+        $('#theme-toggle').text(dark ? 'ライトモード' : 'ダークモード');
+    }
+    $(function () {
+        applyTheme(loadTheme() === 'dark');
+    });
+    $(document).on('click', '#theme-toggle', function () {
+        var dark = !$('body').hasClass('dark');
+        applyTheme(dark);
+        saveTheme(dark ? 'dark' : 'light');
+    });
+
     // 操作前の確認ダイアログ (き電停止・復電など)
     $(document).on('submit', 'form.js-confirm', function () {
         var msg = $(this).attr('data-confirm') || '実行しますか？';
