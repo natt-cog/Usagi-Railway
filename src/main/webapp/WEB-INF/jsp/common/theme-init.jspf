@@ -1,0 +1,10 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- 画面テーマ: 描画前に body へ dark を付与 (urms.js は head で読み込まれ body がまだ無いため) --%>
+<script>
+(function () {
+    var t = null;
+    try { t = window.localStorage && localStorage.getItem('urms.theme'); } catch (e) {}
+    if (!t && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { t = 'dark'; }
+    if (t === 'dark') { document.body.className += (document.body.className ? ' ' : '') + 'dark'; }
+})();
+</script>
