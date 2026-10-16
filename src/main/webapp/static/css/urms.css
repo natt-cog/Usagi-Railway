@@ -105,5 +105,5 @@ body.dark .bk-OPEN { color: #aab3bc; }
 body.dark .st-REQUESTED, body.dark .st-OPEN, body.dark .fs-IN_DEPOT { color: #f0b04a; }
 body.dark .st-IN_PROGRESS, body.dark .st-REPAIR_REQUESTED, body.dark .st-REPAIRING, body.dark .fs-OUT_OF_SERVICE, body.dark td.over { color: #ff7b6b; }
 body.dark .bk-TRIPPED, body.dark .judge-W, body.dark .judge-X { color: #fff; }
-body.dark .st-REJECTED, body.dark tr.missing td { color: #7d868f; }
+body.dark .st-REJECTED, body.dark tr.missing td { color: #959ea7; }
 body.dark pre.file { background: #0b0d0f; border: 1px solid #39434e; }
