@@ -15,9 +15,11 @@
 <script src="${ctx}/static/js/urms.js"></script>
 </head>
 <body<c:if test="${autoRefresh}"> data-autorefresh="1"</c:if>>
+<%@ include file="theme-init.jspf" %>
 <div id="header">
   <div class="brand"><a href="${ctx}/dashboard">うさぎ鉄道 電力・車両保守システム</a><span class="env">【検証環境】 運用日 <c:out value="${operationDate}" /></span></div>
   <div class="user">
+    <button type="button" id="theme-toggle" class="link">ダークモード</button>
     <sec:authorize access="isAuthenticated()">
       <sec:authentication property="name" />
       (<sec:authentication property="authorities" />)

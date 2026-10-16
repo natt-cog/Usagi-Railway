@@ -69,3 +69,41 @@ pre.file { background: #1b1b1b; color: #9fe39f; padding: 8px 12px; font-family: 
 .tile .big { display: block; font-size: 26px; }
 .tile.alert { border-color: #c0392b; background: #fbe9e7; }
 textarea { width: 100%; box-sizing: border-box; border: 1px solid #8ea0b3; font-size: 13px; }
+/* ダークモード (body.dark, IE8/9 互換のため CSS 変数は使わず上書き) */
+.theme-switch { text-align: right; padding: 8px 16px 0; }
+#header #theme-toggle { margin-right: 12px; }
+body.dark { color: #d8dde3; background: #15191e; }
+body.dark a { color: #7fd1a0; }
+body.dark #header { background: #10331f; }
+body.dark #header .brand a { color: #fff; }
+body.dark #nav { background: #232a32; border-bottom-color: #39434e; }
+body.dark #footer { color: #8a939c; }
+body.dark h1 { border-left-color: #3fa66a; }
+body.dark h1 small, body.dark h2 small, body.dark .note { color: #9aa4ae; }
+body.dark .panel, body.dark .tile { background: #1e242b; border-color: #39434e; }
+body.dark .tile.alert { background: #3a1a18; border-color: #c0392b; }
+body.dark table.grid th, body.dark table.grid td, body.dark table.kv th, body.dark table.kv td { border-color: #39434e; }
+body.dark table.grid th, body.dark table.kv th { background: #29313a; }
+body.dark table.grid tr:nth-child(even) td { background: #222930; }
+body.dark table.grid td.empty { color: #8a939c; }
+body.dark .flash.ok { background: #16341f; border-color: #2e7d46; color: #9be0ad; }
+body.dark .flash.ng { background: #3a1a18; border-color: #a33a32; color: #ffb4ab; }
+body.dark .inline-form { border-bottom-color: #444c55; }
+body.dark button, body.dark a.button { background: #2a323b; border-color: #5a6876; color: #d8dde3; }
+body.dark button.primary { background: #2a7a4c; border-color: #1d5e3a; color: #fff; }
+body.dark button.warn { background: #c0392b; border-color: #962d22; color: #fff; }
+body.dark button.link { background: none; border: none; color: #ffd966; }
+body.dark input[type=text], body.dark input[type=password], body.dark select, body.dark textarea { background: #12161a; border-color: #5a6876; color: #d8dde3; }
+body.dark fieldset { border-color: #39434e; }
+body.dark .req, body.dark .err { color: #ff8a80; }
+body.dark.login { background: #0d2416; }
+body.dark .login-box { background: #1e242b; border-color: #39434e; }
+body.dark .login-box h1 small { color: #9aa4ae; }
+body.dark .hint { color: #8a939c; }
+body.dark .bk-CLOSED, body.dark .judge-N, body.dark .st-COMPLETED, body.dark .st-CLOSED, body.dark .st-RETURNED, body.dark .st-REPAIRED { color: #6fcf8e; }
+body.dark .bk-OPEN { color: #aab3bc; }
+body.dark .st-REQUESTED, body.dark .st-OPEN, body.dark .fs-IN_DEPOT { color: #f0b04a; }
+body.dark .st-IN_PROGRESS, body.dark .st-REPAIR_REQUESTED, body.dark .st-REPAIRING, body.dark .fs-OUT_OF_SERVICE, body.dark td.over { color: #ff7b6b; }
+body.dark .bk-TRIPPED, body.dark .judge-W, body.dark .judge-X { color: #fff; }
+body.dark .st-REJECTED, body.dark tr.missing td { color: #959ea7; }
+body.dark pre.file { background: #0b0d0f; border: 1px solid #39434e; }
