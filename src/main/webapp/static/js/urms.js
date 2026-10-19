@@ -52,6 +52,19 @@
         th.addClass(asc ? 'asc' : 'desc');
     });
 
+    // 画面テーマ (ライト / ダーク): 設定は端末のブラウザ (localStorage) に保存
+    function updateThemeToggle() {
+        var dark = $('body').hasClass('dark');
+        $('#theme-toggle').text(dark ? 'ライトモード' : 'ダークモード').attr('aria-pressed', dark ? 'true' : 'false');
+    }
+    $(document).on('click', '#theme-toggle', function () {
+        var dark = !$('body').hasClass('dark');
+        $('body').toggleClass('dark', dark);
+        try { window.localStorage.setItem('urms.theme', dark ? 'dark' : 'light'); } catch (e) {}
+        updateThemeToggle();
+    });
+    $(updateThemeToggle);
+
     // 警報一覧: 60 秒ごとに自動更新 (指令所常時表示用)
     if ($('body').attr('data-autorefresh')) {
         window.setTimeout(function () { window.location.reload(); }, 60000);

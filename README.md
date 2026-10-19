@@ -34,6 +34,8 @@
 | | 故障・修理 | 故障登録 (製造番号から搭載位置を自動特定, 重要度 A は自動で休車), 調査, メーカー修理依頼, メーカーによる進捗更新, 完了 |
 | | 検査期限 | 交番 (90 日), 重要部 (4 年 or 60 万 km), 全般 (8 年). 残 14 日以内 / 57 万 km 以上で注意. COBOL バッチ `URINS01` と同一形式の `INSPDUE.DAT` |
 
+全画面共通: ヘッダ (ログイン画面は右上) の「ダークモード / ライトモード」ボタンで配色を切替。設定は端末のブラウザ (localStorage `urms.theme`) に保存され、未設定時は OS の配色設定に従う。
+
 REST API (`/urms/api/**`, HTTP Basic): `GET /api/substations`, `GET /api/substations/{code}`, `GET /api/alarms?unacked=true`, `POST /api/telemetry`, `GET /api/formations`, `GET /api/formations/{no}`, `GET /api/equipment/{serial}`, `GET|POST /api/failures`。管理者のみ: `GET /api/batch/daily-report?date=yyyyMMdd`, `GET /api/batch/formations-file`, `GET /api/batch/inspection-due`。
 
 ## 起動方法
