@@ -27,7 +27,7 @@
         <button type="submit" class="link">ログアウト</button>
       </form>
     </sec:authorize>
-    <button type="button" id="theme-toggle" class="theme" title="表示テーマを切り替え" aria-pressed="false">&#9790; ダーク表示</button>
+    <button type="button" id="theme-toggle" class="theme" title="表示テーマを切り替え" aria-label="現在ライト表示。ダーク表示に切り替え">&#9790; ダーク表示</button>
   </div>
 </div>
 <div id="nav">

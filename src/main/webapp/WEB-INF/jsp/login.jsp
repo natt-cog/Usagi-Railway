@@ -11,7 +11,7 @@
 </head>
 <body class="login">
 <div class="login-box">
-  <div class="theme-row"><button type="button" id="theme-toggle" class="theme" title="表示テーマを切り替え" aria-pressed="false">&#9790; ダーク表示</button></div>
+  <div class="theme-row"><button type="button" id="theme-toggle" class="theme" title="表示テーマを切り替え" aria-label="現在ライト表示。ダーク表示に切り替え">&#9790; ダーク表示</button></div>
   <h1>うさぎ鉄道<br><small>電力・車両保守システム (URMS) 端末ログイン</small></h1>
   <c:if test="${param.error != null}"><div class="flash ng">ユーザIDまたはパスワードが正しくありません</div></c:if>
   <c:if test="${param.logout != null}"><div class="flash ok">ログアウトしました</div></c:if>

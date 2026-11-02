@@ -2,12 +2,13 @@
 (function (w, d) {
     'use strict';
     var KEY = 'urms.theme', DARK = 'theme-dark', root = d.documentElement;
+    var mq = w.matchMedia ? w.matchMedia('(prefers-color-scheme: dark)') : null;
 
     function saved() {
         try { return w.localStorage ? w.localStorage.getItem(KEY) : null; } catch (e) { return null; }
     }
     function prefersDark() {
-        return !!(w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches);
+        return !!(mq && mq.matches);
     }
     function isDark() {
         return (' ' + root.className + ' ').indexOf(' ' + DARK + ' ') >= 0;
@@ -18,12 +19,21 @@
         var btn = d.getElementById('theme-toggle');
         if (btn) {
             btn.innerHTML = dark ? '&#9728; ライト表示' : '&#9790; ダーク表示';
-            btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+            btn.setAttribute('aria-label', dark ? '現在ダーク表示。ライト表示に切り替え' : '現在ライト表示。ダーク表示に切り替え');
         }
     }
 
     var s = saved();
     apply(s ? s === 'dark' : prefersDark());
+
+    // 未設定時は OS の配色変更に追従 (ボタンで選択した後は保存値を優先)
+    function onSchemeChange(e) {
+        if (!saved()) { apply(e.matches); }
+    }
+    if (mq) {
+        if (mq.addEventListener) { mq.addEventListener('change', onSchemeChange); }
+        else if (mq.addListener) { mq.addListener(onSchemeChange); }
+    }
 
     function onReady() {
         apply(isDark());
