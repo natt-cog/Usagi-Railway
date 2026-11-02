@@ -1,0 +1,47 @@
+<%@ page pageEncoding="UTF-8" %>
+<script>
+/* 表示テーマ (ダーク/ライト): <body> 直後で適用し、描画前のちらつきを防ぐ。IE8 でも動くよう素の JS で記述 */
+(function (doc, win) {
+    var KEY = 'urms.theme';
+    var body = doc.body;
+    var mql = win.matchMedia ? win.matchMedia('(prefers-color-scheme: dark)') : null;
+    function saved() {
+        try { return win.localStorage ? win.localStorage.getItem(KEY) : null; } catch (e) { return null; }
+    }
+    function isDark() {
+        var s = saved();
+        return s ? s === 'dark' : !!(mql && mql.matches);
+    }
+    function label() {
+        var btn = doc.getElementById('theme-toggle');
+        if (!btn) { return; }
+        var dark = / dark /.test(' ' + body.className + ' ');
+        btn.innerHTML = dark ? 'ライト表示' : 'ダーク表示';
+        btn.setAttribute('aria-label', dark ? '表示テーマ: ダーク (クリックでライト表示に切替)' : '表示テーマ: ライト (クリックでダーク表示に切替)');
+    }
+    function apply(dark) {
+        var c = (' ' + body.className + ' ').replace(/ dark /g, ' ');
+        body.className = (dark ? c + 'dark' : c).replace(/^\s+|\s+$/g, '');
+        label();
+    }
+    apply(isDark());
+    function onClick(ev) {
+        var t = ev.target || ev.srcElement;
+        if (!t || t.id !== 'theme-toggle') { return; }
+        var dark = !/ dark /.test(' ' + body.className + ' ');
+        try { if (win.localStorage) { win.localStorage.setItem(KEY, dark ? 'dark' : 'light'); } } catch (e) { /* 保存できなくても切替は行う */ }
+        apply(dark);
+    }
+    function onOsChange() { if (!saved()) { apply(isDark()); } }
+    if (doc.addEventListener) {
+        doc.addEventListener('click', onClick, false);
+        doc.addEventListener('DOMContentLoaded', label, false);
+    } else if (doc.attachEvent) {
+        doc.attachEvent('onclick', onClick);
+        win.attachEvent('onload', label);
+    }
+    if (mql) {
+        if (mql.addEventListener) { mql.addEventListener('change', onOsChange); } else if (mql.addListener) { mql.addListener(onOsChange); }
+    }
+})(document, window);
+</script>

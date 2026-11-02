@@ -69,3 +69,38 @@ pre.file { background: #1b1b1b; color: #9fe39f; padding: 8px 12px; font-family: 
 .tile .big { display: block; font-size: 26px; }
 .tile.alert { border-color: #c0392b; background: #fbe9e7; }
 textarea { width: 100%; box-sizing: border-box; border: 1px solid #8ea0b3; font-size: 13px; }
+/* ダークモード (body.dark): 夜間の指令所向け。#theme-toggle で切替、localStorage urms.theme に保存 */
+#theme-toggle { margin-right: 12px; }
+.login-theme { text-align: right; padding: 8px 16px; }
+body.dark { color: #d7dde4; background: #14181d; }
+body.dark a { color: #7fd0a0; }
+body.dark #header { background: #10301f; }
+body.dark #header .brand a { color: #e8f3ec; }
+body.dark #nav { background: #1f262e; border-bottom-color: #343e49; }
+body.dark #footer { color: #8a949e; }
+body.dark h1 { border-left-color: #3f9a66; }
+body.dark h1 small, body.dark h2 small, body.dark .note, body.dark .hint { color: #9aa5b1; }
+body.dark .panel, body.dark .tile, body.dark .login-box { background: #1c2228; border-color: #343e49; }
+body.dark table { color: #d7dde4; }
+body.dark table.grid th, body.dark table.grid td, body.dark table.kv th, body.dark table.kv td { border-color: #343e49; }
+body.dark table.grid th, body.dark table.kv th { background: #252d36; }
+body.dark table.grid tr:nth-child(even) td { background: #20272e; }
+body.dark table.grid td.empty, body.dark tr.missing td { color: #7d8893; }
+body.dark .flash.ok { background: #16301f; border-color: #3f8a55; color: #9fdcae; }
+body.dark .flash.ng { background: #3a1a18; border-color: #a5463f; color: #f3a69e; }
+body.dark .inline-form { border-bottom-color: #3a444f; }
+body.dark button, body.dark a.button { background: #2a323b; border-color: #56636f; color: #d7dde4; }
+body.dark button.primary { background: #2d7a4e; border-color: #1d5e3a; color: #fff; }
+body.dark button.warn { background: #b0392d; border-color: #8a2a21; color: #fff; }
+body.dark button.link { background: none; border: none; color: #ffd966; }
+body.dark input[type=text], body.dark input[type=password], body.dark select, body.dark textarea { background: #11161b; color: #e3e8ed; border-color: #56636f; }
+body.dark fieldset { border-color: #343e49; }
+body.dark .req, body.dark .err, body.dark td.over, body.dark .fs-OUT_OF_SERVICE { color: #ff8a80; }
+body.dark .bk-CLOSED, body.dark .judge-N, body.dark .st-COMPLETED, body.dark .st-CLOSED, body.dark .st-RETURNED, body.dark .st-REPAIRED { color: #8fd6a2; }
+body.dark .bk-OPEN { color: #a8b2bc; }
+body.dark .st-REQUESTED, body.dark .st-OPEN, body.dark .fs-IN_DEPOT { color: #ffb74d; }
+body.dark .st-IN_PROGRESS, body.dark .st-REPAIR_REQUESTED, body.dark .st-REPAIRING { color: #ff8a80; }
+body.dark .st-REJECTED { color: #7d8893; }
+body.dark .tile.alert { background: #3a1a18; border-color: #c0392b; }
+body.dark pre.file { background: #0b0d0f; border: 1px solid #343e49; }
+body.login.dark { background: #0d2416; }
