@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="${ctx}/static/css/urms.css">
 </head>
 <body class="login">
+<%@ include file="common/theme-init.jspf" %>
+<div class="login-theme"><button type="button" id="theme-toggle" class="link">ダーク表示</button></div>
 <div class="login-box">
   <h1>うさぎ鉄道<br><small>電力・車両保守システム (URMS) 端末ログイン</small></h1>
   <c:if test="${param.error != null}"><div class="flash ng">ユーザIDまたはパスワードが正しくありません</div></c:if>

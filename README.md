@@ -20,6 +20,8 @@
 |---|---|
 | ![搭載機器](docs/images/equipment-lifecycle.png) | ![故障](docs/images/failure-detail.png) |
 
+画面右上 (ログイン画面も) の「ダーク表示」/「ライト表示」でダークモードに切り替えられます。選択はブラウザ (localStorage `urms.theme`) に保存され、未選択のときは OS の表示設定 (prefers-color-scheme) に従います。
+
 ## 業務機能
 
 | 区分 | 画面 / API | 内容 |
