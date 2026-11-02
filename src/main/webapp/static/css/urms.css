@@ -69,3 +69,45 @@ pre.file { background: #1b1b1b; color: #9fe39f; padding: 8px 12px; font-family: 
 .tile .big { display: block; font-size: 26px; }
 .tile.alert { border-color: #c0392b; background: #fbe9e7; }
 textarea { width: 100%; box-sizing: border-box; border: 1px solid #8ea0b3; font-size: 13px; }
+button.theme { margin-left: 12px; padding: 1px 8px; border: 1px solid #ffd966; background: transparent; color: #ffd966; cursor: pointer; font-size: 12px; }
+.login-box .theme-row { text-align: right; margin: -12px -20px 0 0; }
+.login-box button.theme { width: auto; margin: 0; border-color: #7a8a99; color: #555; }
+/* ダークモード (html.theme-dark) - 夜間指令所向け */
+html.theme-dark body { color: #d8dee5; background: #12161b; }
+html.theme-dark a { color: #7fd1a1; }
+html.theme-dark #header { background: #0f2e1d; border-bottom: 1px solid #1f4a31; }
+html.theme-dark #header .brand a { color: #e6f2ea; }
+html.theme-dark #nav { background: #1c232b; border-bottom-color: #2e3842; }
+html.theme-dark #footer { color: #7d8894; }
+html.theme-dark h1 { border-left-color: #3fa66b; }
+html.theme-dark h1 small, html.theme-dark h2 small, html.theme-dark .note { color: #98a3ae; }
+html.theme-dark .panel, html.theme-dark .tile { background: #1a2027; border-color: #2e3842; }
+html.theme-dark table.grid th, html.theme-dark table.grid td,
+html.theme-dark table.kv th, html.theme-dark table.kv td { border-color: #2e3842; }
+html.theme-dark table.grid th, html.theme-dark table.kv th { background: #232c35; color: #e1e7ed; }
+html.theme-dark table.grid tr:nth-child(even) td { background: #1f262e; }
+html.theme-dark table.grid td.empty, html.theme-dark .hint { color: #7d8894; }
+html.theme-dark .flash.ok { background: #16301f; border-color: #2f7a47; color: #9fe0b2; }
+html.theme-dark .flash.ng { background: #3a1a1a; border-color: #a33a3a; color: #ffaaa5; }
+html.theme-dark .inline-form { border-bottom-color: #3a4550; }
+html.theme-dark button, html.theme-dark a.button { background: #2a333d; border-color: #4a5866; color: #e1e7ed; }
+html.theme-dark button.primary { background: #2c7a4d; border-color: #3fa66b; color: #fff; }
+html.theme-dark button.warn { background: #b03a2e; border-color: #d0574a; color: #fff; }
+html.theme-dark button.link, html.theme-dark button.theme { background: transparent; color: #ffd966; }
+html.theme-dark button.theme { border-color: #ffd966; }
+html.theme-dark input[type=text], html.theme-dark input[type=password], html.theme-dark select, html.theme-dark textarea { background: #0f1419; color: #e1e7ed; border-color: #4a5866; }
+html.theme-dark fieldset { border-color: #2e3842; }
+html.theme-dark .req, html.theme-dark td.over, html.theme-dark .fs-OUT_OF_SERVICE { color: #ff7b6e; }
+html.theme-dark .err { color: #ffaaa5; }
+html.theme-dark .bk-CLOSED, html.theme-dark .judge-N,
+html.theme-dark .st-COMPLETED, html.theme-dark .st-CLOSED, html.theme-dark .st-RETURNED, html.theme-dark .st-REPAIRED { color: #6fd49a; }
+html.theme-dark .bk-OPEN { color: #a4aeb8; }
+html.theme-dark .st-REQUESTED, html.theme-dark .st-OPEN, html.theme-dark .fs-IN_DEPOT { color: #f0b54a; }
+html.theme-dark .st-IN_PROGRESS, html.theme-dark .st-REPAIR_REQUESTED, html.theme-dark .st-REPAIRING { color: #ff7b6e; }
+html.theme-dark .st-REJECTED, html.theme-dark tr.missing td { color: #7d8894; }
+html.theme-dark .tile.alert { background: #3a1a1a; border-color: #c0392b; }
+html.theme-dark pre.file { background: #0a0d10; border: 1px solid #2e3842; }
+html.theme-dark body.login { background: #0b1f14; }
+html.theme-dark .login-box { background: #1a2027; border-color: #2e3842; }
+html.theme-dark .login-box h1 small { color: #98a3ae; }
+html.theme-dark .login-box button.theme { border-color: #4a5866; color: #ffd966; }
